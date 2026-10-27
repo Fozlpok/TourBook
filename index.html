@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Diary | 旅行足跡</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    body {
+      background-color: #fdfbf7;
+      color: #374151;
+      font-family: 'Nunito', ui-rounded, 'Hiragino Maru Gothic ProN', 'Quicksand', "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    /* 手帳風格地圖 */
+    .leaflet-container { background: #e0f2fe; font-family: inherit; }
+    .leaflet-control-zoom { display: none; }
+    .leaflet-control-attribution {
+      background: rgba(255, 255, 255, 0.6) !important;
+      backdrop-filter: blur(4px);
+      border-top-left-radius: 8px;
+      color: #6b7280 !important;
+    }
+    .custom-div-icon { background: transparent; border: none; }
+  </style>
+</head>
+<body class="selection:bg-pink-200 relative overflow-x-hidden">
+
+  <!-- 背景光暈 -->
+  <div class="fixed top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-pink-200/40 blur-[100px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-sky-200/40 blur-[100px] pointer-events-none -z-10"></div>
+  <div class="fixed top-[40%] left-[30%] w-[40%] h-[40%] rounded-full bg-yellow-100/40 blur-[100px] pointer-events-none -z-10"></div>
+
+  <!-- 導航列 -->
+  <header class="px-4 md:px-6 py-4 sticky top-0 z-50 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-pink-100 rounded-xl text-pink-500 shadow-sm">
+        <i data-lucide="plane" class="w-5 h-5 md:w-6 md:h-6 animate-[bounce_3s_infinite]"></i>
+      </div>
+      <div>
+        <h1 class="text-lg md:text-xl font-bold tracking-wide text-gray-800">Travel Diary</h1>
+        <p class="text-[10px] md:text-[11px] text-gray-500 tracking-wider font-medium">記錄每個美好的角落 ✨</p>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
+      <i data-lucide="sun" class="w-4 h-4 text-yellow-400"></i>
+      <span class="text-xs font-bold text-gray-600 tracking-wider">LET'S GO EXPLORING!</span>
+    </div>
+  </header>
+
+  <!-- 主要內容 -->
+  <main class="max-w-[1400px] mx-auto px-4 md:px-6 py-6 md:py-10 flex flex-col xl:flex-row gap-8 items-start">
+
+    <!-- 左側：地圖 -->
+    <div id="map-col" class="w-full xl:w-2/3 flex flex-col gap-4 relative z-10">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between px-1 md:px-2 gap-2">
+        <h2 class="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-800">
+          <i data-lucide="map" class="w-5 h-5 md:w-6 md:h-6 text-sky-500"></i>
+          旅行足跡 <span class="text-gray-400 text-xs md:text-sm font-medium ml-1">| My Journey</span>
+        </h2>
+        <span class="text-[10px] md:text-xs text-gray-400 font-medium bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100 flex items-center gap-1 w-fit">
+          <i data-lucide="navigation" class="w-3 h-3 text-sky-400"></i> 點選地標或下方卡片切換旅程
+        </span>
+      </div>
+
+      <div class="w-full relative rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border-4 border-white shadow-lg h-[45vh] min-h-[350px] md:h-[550px]">
+        <div class="absolute bottom-4 md:bottom-6 right-3 md:right-4 flex flex-col gap-2 z-[400]">
+          <button id="zoom-in" class="p-2 md:p-2.5 bg-white/90 backdrop-blur-sm rounded-xl shadow text-gray-700 hover:bg-white hover:scale-110 hover:text-sky-500 transition-all active:scale-95 border border-gray-100" aria-label="放大">
+            <i data-lucide="plus" class="w-4 h-4 md:w-5 md:h-5"></i>
+          </button>
+          <button id="zoom-out" class="p-2 md:p-2.5 bg-white/90 backdrop-blur-sm rounded-xl shadow text-gray-700 hover:bg-white hover:scale-110 hover:text-sky-500 transition-all active:scale-95 border border-gray-100" aria-label="縮小">
+            <i data-lucide="minus" class="w-4 h-4 md:w-5 md:h-5"></i>
+          </button>
+          <button id="zoom-reset" class="p-2 md:p-2.5 bg-white/90 backdrop-blur-sm rounded-xl shadow text-gray-700 hover:bg-white hover:scale-110 hover:text-sky-500 transition-all active:scale-95 border border-gray-100" aria-label="觀看全世界">
+            <i data-lucide="globe" class="w-4 h-4 md:w-5 md:h-5"></i>
+          </button>
+        </div>
+        <div id="map" class="w-full h-full z-0"></div>
+      </div>
+    </div>
+
+    <!-- 右側：旅程小手札 -->
+    <div id="brief-col" class="w-full xl:w-1/3 flex flex-col gap-4 relative z-20">
+      <div class="flex items-center justify-between px-1 md:px-2">
+        <h2 class="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-800">
+          <i data-lucide="book-open" class="w-5 h-5 md:w-6 md:h-6 text-pink-400"></i>
+          旅程小手札 <span class="text-gray-400 text-xs md:text-sm font-medium ml-1">| Trip Diary</span>
+        </h2>
+      </div>
+      <div id="briefing-panel" class="relative rounded-[2rem] bg-white shadow-xl border border-gray-100 p-5 md:p-8 overflow-hidden flex flex-col min-h-[350px] md:min-h-[400px]"></div>
+    </div>
+  </main>
+
+  <!-- 每日章節 -->
+  <section class="max-w-[1400px] mx-auto px-4 md:px-6 pt-2 pb-4 relative z-20">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-5 px-1 md:px-2">
+      <div class="flex items-center gap-2">
+        <i data-lucide="calendar-days" class="w-5 h-5 md:w-6 md:h-6 text-amber-400"></i>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800">每日章節</h2>
+      </div>
+      <span class="text-gray-400 font-medium text-xs md:text-base ml-0 sm:ml-2" id="chapters-sub">| Daily Chapters</span>
+    </div>
+    <div id="chapters-container" class="flex gap-3 md:gap-4 overflow-x-auto hide-scrollbar pb-3 -mx-4 px-4 md:mx-0 md:px-2"></div>
+  </section>
+
+  <!-- 所有旅程 -->
+  <section class="max-w-[1400px] mx-auto px-4 md:px-6 pb-12 md:pb-16 pt-4 md:pt-6 relative z-20">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-6 px-1 md:px-2">
+      <div class="flex items-center gap-2">
+        <i data-lucide="camera" class="w-5 h-5 md:w-6 md:h-6 text-indigo-400"></i>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800">所有的美好回憶</h2>
+      </div>
+      <span class="text-gray-400 font-medium text-xs md:text-base ml-0 sm:ml-2">| All Adventures</span>
+    </div>
+    <div id="archives-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"></div>
+  </section>
+
+  <footer class="text-center py-6 md:py-8 text-gray-400 text-xs md:text-sm font-medium bg-white/50 border-t border-gray-100 backdrop-blur-sm relative z-20">
+    © 2026 Travel Diary. Keep exploring the world. 🌍
+  </footer>
+
+  <script>
+    /*
+      旅程資料：新增旅程時在此陣列加一筆即可。
+      coords：地圖地標 [緯度, 經度]；route：選中時畫出的路線點（可省略）；
+      chapters：每日章節，連結到行程頁的 #day-N。
+    */
+    const JOURNEYS = [
+      {
+        id: 1, title: "美東雙城慢旅", subtitle: "Boston & New York 2026", loc: "美國・東北部",
+        desc: "從波士頓的紅磚巷弄與獨立戰爭足跡，搭 Amtrak 一路南下紐約，漫遊大都會、中央公園秋色與百老匯。每個景點都附歷史與建築解析的深度文史之旅。🍂",
+        url: "tourbook.html",
+        coords: [41.5, -72.5],
+        route: [
+          { name: "波士頓", ll: [42.3601, -71.0589], days: "11/12 – 11/14" },
+          { name: "紐約", ll: [40.7580, -73.9855], days: "11/14 – 11/21" }
+        ],
+        icon: "landmark", theme: { bg: "bg-rose-100", text: "text-rose-600", gradient: "from-rose-400 to-indigo-500", hex: "#f43f5e" },
+        tags: ["#深度文史", "#博物館巡禮", "#秋楓雙城"],
+        stats: { days: "10 天", type: "雙城漫步", dates: "2026/11/12 – 11/21", highlight: "百老匯之夜" },
+        chapters: [
+          { d: 1, date: "11/12", city: "波士頓", e: "📸", t: "燈塔山 × 公共圖書館" },
+          { d: 2, date: "11/13", city: "波士頓", e: "🎨", t: "北區 × 加德納 × MFA" },
+          { d: 3, date: "11/14", city: "波士頓→紐約", e: "🎓", t: "哈佛 MIT → Amtrak" },
+          { d: 4, date: "11/15", city: "紐約", e: "🏛️", t: "大都會 × 中央公園" },
+          { d: 5, date: "11/16", city: "紐約", e: "🌿", t: "高線公園 × 惠特尼" },
+          { d: 6, date: "11/17", city: "紐約", e: "🌇", t: "MoMA × Top of the Rock" },
+          { d: 7, date: "11/18", city: "紐約", e: "🌉", t: "布魯克林大橋 × 華爾街" },
+          { d: 8, date: "11/19", city: "紐約", e: "🎭", t: "自然史博物館 × 百老匯" },
+          { d: 9, date: "11/20", city: "紐約", e: "🚉", t: "圖書館 × 中央車站 × Summit" },
+          { d: 10, date: "11/21", city: "紐約→臺灣", e: "✈️", t: "最後採買 → 返臺" }
+        ]
+      }
+    ];
+
+    let activeJourney = JOURNEYS[0];
+    let map, markers = [], routeLayer = null;
+
+    function createCustomIcon(j, isActive) {
+      const html = `
+        <div class="group relative flex items-center justify-center transition-all duration-500 ${isActive ? 'scale-[1.3] md:scale-[1.4] z-50' : 'hover:scale-125 z-40'}">
+          <div class="absolute bottom-[120%] whitespace-nowrap bg-gray-800/90 text-white text-[10px] md:text-[12px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-lg opacity-0 transition-all duration-300 pointer-events-none shadow-md transform translate-y-2 group-hover:translate-y-0 group-hover:opacity-100 ${isActive ? '!opacity-100 !translate-y-0' : ''}">
+            ${j.title}
+            <div class="absolute w-2 h-2 bg-gray-800/90 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+          </div>
+          <div class="w-5 h-5 md:w-6 md:h-6 rounded-full border-[2.5px] md:border-[3px] border-white shadow-md bg-gradient-to-br ${j.theme.gradient} ${isActive ? 'animate-bounce shadow-xl ring-[3px] md:ring-4 ring-white/60' : ''}"></div>
+        </div>`;
+      return L.divIcon({ className: 'custom-div-icon', html, iconSize: [24, 24], iconAnchor: [12, 12] });
+    }
+
+    function cityIcon(name, color) {
+      return L.divIcon({
+        className: 'custom-div-icon', iconSize: [14, 14], iconAnchor: [7, 7],
+        html: `<div class="relative">
+          <div style="background:${color}" class="w-3.5 h-3.5 rounded-full border-2 border-white shadow"></div>
+          <div class="absolute left-5 -top-1 whitespace-nowrap bg-white/90 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">${name}</div>
+        </div>`
+      });
+    }
+
+    const getZoom = type => {
+      const mobile = window.innerWidth < 768;
+      return type === 'world' ? (mobile ? 0.8 : 1.5) : (mobile ? 5.5 : 6.5);
+    };
+
+    function initMap() {
+      map = L.map('map', {
+        center: [20, 15], zoom: getZoom('world'), zoomControl: false, minZoom: 0, zoomSnap: 0.1,
+        maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+      }).addTo(map);
+
+      JOURNEYS.forEach(j => {
+        const marker = L.marker(j.coords, { icon: createCustomIcon(j, activeJourney.id === j.id) }).addTo(map);
+        marker.on('click', () => setActive(j.id, false));
+        markers.push({ id: j.id, marker, data: j });
+      });
+
+      document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+      document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
+      document.getElementById('zoom-reset').addEventListener('click', () => map.flyTo([20, 15], getZoom('world'), { duration: 1.5 }));
+
+      // 先看全世界，再飛到目前的旅程
+      setTimeout(() => setActive(activeJourney.id, false), 900);
+    }
+
+    function drawRoute(j) {
+      if (routeLayer) { routeLayer.remove(); routeLayer = null; }
+      if (!j.route) return;
+      routeLayer = L.layerGroup([
+        L.polyline(j.route.map(r => r.ll), { color: j.theme.hex, weight: 3, opacity: 0.7, dashArray: '6 8' }),
+        ...j.route.map(r => L.marker(r.ll, { icon: cityIcon(r.name, j.theme.hex), interactive: false }))
+      ]).addTo(map);
+    }
+
+    function setActive(id, scroll = true) {
+      activeJourney = JOURNEYS.find(j => j.id === id);
+      markers.forEach(m => {
+        const on = m.id === activeJourney.id;
+        m.marker.setIcon(createCustomIcon(m.data, on));
+        m.marker.setZIndexOffset(on ? 1000 : 0);
+      });
+      drawRoute(activeJourney);
+      map.flyTo(activeJourney.coords, getZoom('focus'), { duration: 1.5, easeLinearity: 0.25 });
+      if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderUI();
+    }
+
+    function renderUI() {
+      const a = activeJourney;
+      document.getElementById('briefing-panel').innerHTML = `
+        <div class="flex items-start gap-4 md:gap-5 mb-5 md:mb-6 relative z-10 gs-brief opacity-0 translate-y-4">
+          <div class="p-3 md:p-4 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br ${a.theme.gradient} text-white shadow-lg shrink-0">
+            <i data-lucide="${a.icon}" class="w-6 h-6 md:w-8 md:h-8"></i>
+          </div>
+          <div>
+            <h3 class="text-[10px] md:text-xs font-extrabold ${a.theme.text} tracking-widest mb-0.5 md:mb-1">${a.loc}</h3>
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-tight">${a.title}</h2>
+            <p class="text-xs text-gray-400 font-medium mt-0.5">${a.subtitle}</p>
+          </div>
+        </div>
+        <p class="text-sm md:text-base text-gray-600 mb-4 font-medium leading-relaxed gs-brief opacity-0 translate-y-4">${a.desc}</p>
+        <div class="flex flex-wrap gap-2 mb-5 gs-brief opacity-0 translate-y-4">
+          ${a.tags.map(t => `<span class="text-[11px] md:text-xs font-bold px-2.5 py-1 rounded-full ${a.theme.bg} ${a.theme.text}">${t}</span>`).join('')}
+        </div>
+        <div class="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8 gs-brief opacity-0 translate-y-4 flex-grow content-start">
+          ${[['日期長度', a.stats.days], ['旅程類型', a.stats.type], ['出發日期', a.stats.dates], ['必體驗', a.stats.highlight]].map(([k, v]) => `
+            <div class="bg-gray-50 rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-100">
+              <span class="block text-[10px] text-gray-400 tracking-wider mb-0.5 md:mb-1">${k}</span>
+              <span class="font-bold text-sm md:text-base text-gray-700">${v}</span>
+            </div>`).join('')}
+        </div>
+        <a href="${encodeURI(a.url)}" class="w-full text-center py-3.5 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold text-white bg-gradient-to-r ${a.theme.gradient} hover:shadow-lg hover:-translate-y-1 transition-all shadow-md gs-brief opacity-0 translate-y-4 inline-block">
+          出發去看看 ✨
+        </a>`;
+
+      gsap.to(".gs-brief", { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out", overwrite: "auto" });
+
+      document.getElementById('chapters-sub').textContent = `| ${a.title}・Daily Chapters`;
+      document.getElementById('chapters-container').innerHTML = (a.chapters || []).map(c => `
+        <a href="${encodeURI(a.url)}#day-${c.d}" class="gs-chapter shrink-0 w-[150px] md:w-[170px] p-4 rounded-[1.5rem] bg-white border-2 border-gray-100 hover:border-gray-200 hover:-translate-y-1 hover:shadow-md transition-all">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-extrabold ${a.theme.text} tracking-wider">DAY ${c.d}</span>
+            <span class="text-[10px] font-bold text-gray-400">${c.date}</span>
+          </div>
+          <div class="text-3xl mb-2">${c.e}</div>
+          <div class="text-sm font-bold text-gray-800 leading-snug">${c.t}</div>
+          <div class="text-[11px] text-gray-400 font-medium mt-1">${c.city}</div>
+        </a>`).join('');
+
+      document.getElementById('archives-container').innerHTML = JOURNEYS.map(j => `
+        <button onclick="setActive(${j.id}, true)" class="text-left p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-white border-2 transition-all group gs-archive-card ${activeJourney.id === j.id ? 'border-sky-300 shadow-md ring-[3px] ring-sky-50' : 'border-gray-100 hover:border-gray-200 hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-md'}">
+          <div class="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+            <div class="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-gradient-to-br ${j.theme.gradient} text-white shadow-sm group-hover:scale-110 transition-transform">
+              <i data-lucide="${j.icon}" class="w-3.5 h-3.5 md:w-4 md:h-4"></i>
+            </div>
+            <span class="text-[9px] md:text-[10px] font-bold text-gray-400 tracking-wider">${j.loc}</span>
+          </div>
+          <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-0.5 md:mb-1">${j.title}</h3>
+          <p class="text-xs md:text-sm text-gray-500 line-clamp-1">${j.subtitle}</p>
+        </button>`).join('') + `
+        <div class="p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center text-gray-400 min-h-[120px]">
+          <i data-lucide="map-pin-plus" class="w-6 h-6 mb-2"></i>
+          <span class="text-sm font-bold">下一段旅程，敬請期待</span>
+        </div>`;
+
+      lucide.createIcons();
+    }
+
+    function playIntroAnimation() {
+      gsap.timeline()
+        .from("header", { y: -50, opacity: 0, duration: 0.8, ease: "power3.out" })
+        .from("#map-col", { x: -50, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
+        .from("#brief-col", { x: 50, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6")
+        .from(".gs-chapter", { y: 30, opacity: 0, duration: 0.5, stagger: 0.05, ease: "back.out(1.2)" }, "-=0.3")
+        .from(".gs-archive-card", { y: 30, opacity: 0, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)" }, "-=0.2");
+    }
+
+    window.onload = () => {
+      renderUI();
+      initMap();
+      playIntroAnimation();
+    };
+  </script>
+</body>
+</html>
