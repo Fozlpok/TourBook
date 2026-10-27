@@ -312,6 +312,9 @@ const FOOD_CAT = {
 //    stop: t 時間, dur 停留(分), e emoji, n 名稱, en 英文, q 地圖搜尋, ll 座標, h 歷史, tip 提醒, food 類別
 //    move: m 交通方式, d 說明, min 分鐘
 // ==========================================
+// 紐約住宿：每天由此出發、晚上回來（hotel 不計入景點數、不顯示於總覽地圖）
+const MOTTO = { dur:0, hotel:true, e:'🏨', en:'Motto by Hilton New York City Times Square', q:'Motto by Hilton New York City Times Square', ll:[40.7595,-73.9831], addr:'150 W 48th St, New York' };
+
 const DAYS = [
 {
     day:1, date:'11/12', dow:'四', city:'b', cityName:'波士頓', emoji:'🍂', sunset:'16:24', hi:10, lo:2,
@@ -417,7 +420,8 @@ const DAYS = [
     sub:'早上搭 Amtrak 前往紐約，中午先到飯店寄放行李；下午趁天亮逛中央公園，再進大都會，晚餐後回飯店入住。',
     note:'<b>入住提醒：</b>Motto 16:00 後才能入住，中午抵達可先寄放行李（可詢問是否提早入住），晚餐後回飯店正式辦理。',
     events:[
-        { m:'taxi', min:10, d:'07:30 退房 → 計程車 / Uber 至 South Station（約 10 分鐘）。' },
+        { t:'07:30', dur:0, hotel:true, e:'🏨', n:'波士頓飯店退房', en:'Omni Parker House', q:'Omni Parker House 60 School St Boston', ll:[42.3578,-71.0603], addr:'60 School St, Boston' },
+        { m:'taxi', min:10, d:'計程車 / Uber 至 South Station（約 10 分鐘）。' },
         { t:'07:45', dur:20, e:'🚉', n:'Amtrak：South Station 發車', en:'Boston South Station', q:'Boston South Station', ll:[42.3519,-71.0552],
           h:['Acela 高速列車約 3 小時 40 分；Northeast Regional 約 4 小時 15 分。'],
           tip:'票價浮動，越早買越便宜。往紐約建議坐右側靠窗，可看康乃狄克海岸線。咖啡車廂可買早餐。' },
@@ -425,7 +429,7 @@ const DAYS = [
         { t:'11:50', dur:0, e:'🗽', n:'抵達紐約 Penn Station', en:'Moynihan Train Hall / Penn Station', q:'Moynihan Train Hall', ll:[40.7506,-73.9935],
           h:['對面的 Moynihan Train Hall 由原郵政總局（Beaux-Arts 建築）改建，2021 年啟用。'] },
         { m:'subway', min:15, d:'1 線 34 St–Penn Station → 50 St，步行約 3 分鐘；或計程車約 10–15 分鐘。' },
-        { t:'12:10', dur:20, e:'🏨', n:'Motto by Hilton 寄放行李', en:'Motto by Hilton New York City Times Square', q:'Motto by Hilton New York City Times Square', ll:[40.7598,-73.9840], addr:'150 W 48th St, New York',
+        { ...MOTTO, t:'12:10', dur:20, n:'Motto by Hilton 寄放行李',
           tip:'入住 16:00 後、退房 11:00 前。電話 +1-212-6688648。' },
         { m:'subway', min:25, d:'49 St（N/R/W）→ 5 Av/59 St，沿 Madison Ave 北行步行約 10 分鐘；或計程車約 15 分鐘。' },
         { t:'12:55', dur:50, e:'☕', n:'Via Quadronno', en:'Via Quadronno', q:'Via Quadronno 25 E 73rd St New York', ll:[40.7720,-73.9644], addr:'25 E 73rd St, New York', food:'cafe',
@@ -448,7 +452,7 @@ const DAYS = [
         { t:'18:30', dur:105, e:'🍷', n:'Café Boulud', en:'Café Boulud', q:'Café Boulud 100 E 63rd St New York', ll:[40.7650,-73.9663], addr:'100 E 63rd St, New York', food:'dinner',
           tip:'名廚 Daniel Boulud 旗下法式餐廳，請提前訂位，服裝建議 smart casual。' },
         { m:'subway', min:20, d:'Lexington Av/59 St（N/R/W）→ 49 St，步行約 3 分鐘；或計程車約 15 分鐘。' },
-        { t:'20:35', dur:0, e:'🏨', n:'回 Motto 辦理入住', en:'Motto by Hilton New York City Times Square', q:'Motto by Hilton New York City Times Square', ll:[40.7598,-73.9840], addr:'150 W 48th St, New York',
+        { ...MOTTO, t:'20:35', n:'回 Motto 辦理入住',
           tip:'取回寄放的行李，正式入住（6 晚，11/21 11:00 前退房）。' },
     ]
 },
@@ -458,7 +462,8 @@ const DAYS = [
     sub:'由北往南走：Vessel → 高線公園空中步道 → Chelsea Market 午餐 → 惠特尼 → 肉品包裝區晚餐。',
     note:'<b>日期調整：</b>原 PDF 將此日排在 11/17（週二），但<b>惠特尼週二休館</b>、摩根圖書館<b>週一休館</b>，因此 11/16 與 11/17 對調，景點不變。',
     events:[
-        { m:'subway', min:20, d:'搭 7 號線至終點 34 St–Hudson Yards 站。' },
+        { ...MOTTO, t:'09:05', n:'從 Motto 出發' },
+        { m:'subway', min:20, d:'步行約 8 分鐘至 Times Sq–42 St，搭 7 號線至終點 34 St–Hudson Yards 站。' },
         { t:'09:30', dur:60, e:'🍯', n:'Hudson Yards & Vessel', en:'Hudson Yards – Vessel', q:'Vessel, Hudson Yards, New York', ll:[40.7538,-74.0022],
           h:['曼哈頓最新的大型都市更新區，建於鐵路調車場之上。',
              'Vessel 蜂巢狀塔樓由英國建築師 Thomas Heatherwick 設計，由交錯樓梯構成，為當代幾何建築代表。'],
@@ -480,7 +485,8 @@ const DAYS = [
         { m:'walk', min:3, d:'步行約 3 分鐘。' },
         { t:'18:30', dur:105, e:'🥖', n:'Pastis', en:'Pastis – Meatpacking District', q:'Pastis 52 Gansevoort St New York', ll:[40.7399,-74.0068], addr:'52 Gansevoort St, New York', food:'dinner',
           tip:'經典巴黎小酒館氛圍，推薦 Steak Frites、洋蔥湯。建議訂位。' },
-        { m:'subway', min:15, d:'回程：14 St / 8 Av 站（A/C/E、L 線）。' },
+        { m:'subway', min:25, d:'14 St / 8 Av 搭 A/C/E 線至 42 St–Port Authority，步行約 10 分鐘；或計程車約 15 分鐘。' },
+        { ...MOTTO, t:'20:40', n:'回 Motto 休息' },
     ]
 },
 {
@@ -489,7 +495,8 @@ const DAYS = [
     sub:'中城文化日：近現代藝術、鍍金時代私人圖書館，傍晚在 Top of the Rock 看日落轉夜景。',
     note:'<b>日期調整：</b>此日原為 11/16（週一），因摩根圖書館週一休館而對調。Top of the Rock 建議預約 16:00–16:15 時段。',
     events:[
-        { m:'subway', min:15, d:'E/M 線至 5 Av/53 St 站。' },
+        { ...MOTTO, t:'10:20', n:'從 Motto 出發' },
+        { m:'walk', min:10, d:'沿 6th Ave 北行至 W 53rd St，步行約 10 分鐘。' },
         { t:'10:30', dur:150, e:'🌌', n:'現代藝術博物館', en:'The Museum of Modern Art (MoMA)', q:'The Museum of Modern Art, 11 W 53rd St', ll:[40.7614,-73.9776], addr:'11 W 53rd St, New York',
           h:['成立於 1929 年，全球近現代藝術聖殿。',
              '典藏梵谷《星夜》、達利《記憶的永恆》、畢卡索《亞維農的少女》、莫內《睡蓮》。'],
@@ -510,6 +517,8 @@ const DAYS = [
         { m:'walk', min:8, d:'步行約 8 分鐘至布萊恩公園。' },
         { t:'19:40', dur:40, e:'🍰', n:'Lady M 千層蛋糕', en:'Lady M Cake Boutique – Bryant Park', q:'Lady M Cake Boutique Bryant Park New York', ll:[40.7526,-73.9840], food:'dessert',
           tip:'招牌原味千層、伯爵茶千層。旁邊布萊恩公園冬季村有免費溜冰場與聖誕市集。營業時間請先確認。' },
+        { m:'walk', min:12, d:'沿 6th Ave 北行步行約 12 分鐘回飯店。' },
+        { ...MOTTO, t:'20:35', n:'回 Motto 休息' },
     ]
 },
 {
@@ -517,6 +526,8 @@ const DAYS = [
     title:'布魯克林大橋 × DUMBO × 華爾街 × SoHo 選品',
     sub:'貝果早餐後步行跨越布魯克林大橋，搭渡輪回下曼哈頓，下午華爾街歷史區，傍晚 SoHo / Nolita。',
     events:[
+        { ...MOTTO, t:'08:05', n:'從 Motto 出發' },
+        { m:'subway', min:20, d:'49 St 搭 N/R/W 線至 Prince St（約 15 分鐘），步行約 5 分鐘。' },
         { t:'08:30', dur:60, e:'🥯', n:'Sadelle\'s', en:'Sadelle\'s – SoHo', q:'Sadelle\'s 463 W Broadway New York', ll:[40.7247,-74.0021], addr:'463 W Broadway, New York', food:'cafe',
           tip:'招牌煙燻鮭魚貝果塔（Tower），多人分食最划算。建議訂位。' },
         { m:'subway', min:15, d:'R/W 線 Prince St → City Hall（約 10 分鐘）；或步行約 20 分鐘。' },
@@ -547,6 +558,8 @@ const DAYS = [
         { m:'walk', min:10, d:'步行約 10 分鐘。' },
         { t:'19:00', dur:90, e:'🧆', n:'Shuka', en:'Shuka – Mediterranean', q:'Shuka 38 MacDougal St New York', ll:[40.7285,-74.0010], addr:'38 MacDougal St, New York', food:'dinner',
           tip:'推薦各式抹醬拼盤（Mezze）、Shakshuka。建議訂位。' },
+        { m:'subway', min:20, d:'W 4 St 搭 B/D/F/M 線至 47–50 Sts–Rockefeller Ctr，步行約 5 分鐘。' },
+        { ...MOTTO, t:'20:50', n:'回 Motto 休息' },
     ]
 },
 {
@@ -554,7 +567,8 @@ const DAYS = [
     title:'自然歷史博物館 × 西村漫步 × 百老匯之夜',
     sub:'上午上西區看恐龍與藍鯨，下午西村巷弄散步，早晚餐後前往劇院區。',
     events:[
-        { m:'subway', min:20, d:'B/C 線至 81 St–Museum of Natural History 站（出站即博物館）。' },
+        { ...MOTTO, t:'09:35', n:'從 Motto 出發' },
+        { m:'subway', min:20, d:'步行至 47–50 Sts–Rockefeller Ctr 站（約 5 分鐘），搭 B 線至 81 St–Museum of Natural History（出站即博物館）。' },
         { t:'10:00', dur:210, e:'🦖', n:'美國自然歷史博物館', en:'American Museum of Natural History', q:'American Museum of Natural History', ll:[40.7813,-73.9740], addr:'200 Central Park West, New York',
           h:['建於 1869 年，全球最大自然歷史博物館之一，也是電影《博物館驚魂夜》背景地。',
              '四樓恐龍化石展廳、海洋生物廳 29 公尺藍鯨模型；2023 年開幕的 Gilder Center（Studio Gang 設計）峽谷般的中庭極具張力。'],
@@ -575,6 +589,8 @@ const DAYS = [
           h:['百老匯劇院區集中於 W 41st–54th St，約 41 座專業劇院。',
              '經典長青劇碼如《獅子王》《歌劇魅影》《芝加哥》《漢密爾頓》《魔法壞女巫》。'],
           tip:'官方票務或 TodayTix 預購；當日折扣票可到時代廣場 TKTS 紅色階梯售票亭。週四晚場通常 19:00 開演。' },
+        { m:'walk', min:10, d:'劇院區就在飯店旁，散場後步行約 5–10 分鐘回飯店。' },
+        { ...MOTTO, t:'21:40', n:'回 Motto 休息' },
     ]
 },
 {
@@ -582,7 +598,8 @@ const DAYS = [
     title:'紐約公共圖書館 × 中央車站 × Summit 夕陽 × 最後採購',
     sub:'中城 42 街 Beaux-Arts 建築巡禮，下午第五大道採購，夕陽時段登上 Summit。',
     events:[
-        { m:'subway', min:15, d:'B/D/F/M 線 42 St–Bryant Park 或 7 號線 5 Av 站。' },
+        { ...MOTTO, t:'09:45', n:'從 Motto 出發' },
+        { m:'walk', min:12, d:'沿 6th Ave 南行至 42nd St 轉 5th Ave，步行約 12 分鐘。' },
         { t:'10:00', dur:75, e:'🦁', n:'紐約公共圖書館', en:'NYPL – Stephen A. Schwarzman Building', q:'New York Public Library Stephen A. Schwarzman Building', ll:[40.7532,-73.9822], addr:'476 5th Ave, New York',
           h:['主樓施瓦茨曼大樓建於 1911 年，Beaux-Arts 風格；入口兩座石獅名為「耐心」與「堅毅」。',
              '三樓玫瑰主閱覽室（Rose Main Reading Room）長近一個街區，雲彩天頂壁畫雄偉壯觀。'],
@@ -606,6 +623,8 @@ const DAYS = [
         { m:'subway', min:15, d:'Grand Central 搭 6 號線至 23 St（約 8 分鐘），步行 5 分鐘。' },
         { t:'18:30', dur:120, e:'🍽️', n:'Gramercy Tavern', en:'Gramercy Tavern', q:'Gramercy Tavern 42 E 20th St New York', ll:[40.7385,-73.9885], addr:'42 E 20th St, New York', food:'dinner',
           tip:'正式用餐區需訂位；前方 Tavern 酒館區可 walk-in，氣氛更輕鬆。' },
+        { m:'subway', min:25, d:'步行至 23 St 站搭 N/R/W 線至 49 St，步行約 3 分鐘；或計程車約 15 分鐘。' },
+        { ...MOTTO, t:'20:55', n:'回 Motto 休息' },
     ]
 },
 {
@@ -613,12 +632,17 @@ const DAYS = [
     title:'最後的早餐與採買 → 前往機場返臺',
     sub:'早上輕鬆漫步與整理行李。國際線建議起飛前 3 小時抵達機場。',
     events:[
+        { ...MOTTO, t:'07:30', n:'從 Motto 出發' },
+        { m:'subway', min:30, d:'47–50 Sts–Rockefeller Ctr 搭 F 線至 Delancey St–Essex St，步行約 5 分鐘。' },
         { t:'08:00', dur:60, e:'🥯', n:'在地精緻早餐', en:'Russ & Daughters Cafe（參考）', q:'Russ & Daughters Cafe 127 Orchard St New York', ll:[40.7192,-73.9898], food:'cafe',
-          tip:'可選飯店附近咖啡館；想要紐約經典味，Russ & Daughters（1914 年至今）的煙燻魚貝果、或 Ess-a-Bagel 都是好選擇。' },
+          tip:'也可在飯店附近咖啡館解決；想要紐約經典味，Russ & Daughters（1914 年至今）的煙燻魚貝果、或 Ess-a-Bagel 都是好選擇。' },
         { m:'subway', min:25, d:'F 線 Delancey St → 34 St–Herald Sq。' },
-        { t:'09:30', dur:90, e:'🎁', n:'市區輕漫步與最後採買', en:'Last-minute Shopping', q:'Macy\'s Herald Square', ll:[40.7508,-73.9890],
-          tip:'回飯店整理行李、退房。液體、食品類伴手禮放託運行李。' },
-        { m:'taxi', min:60, d:'回飯店取行李後前往機場。黃計程車曼哈頓 ⇄ JFK 固定費率約 $70，另加過路費、附加費與小費。' },
+        { t:'09:30', dur:60, e:'🎁', n:'市區輕漫步與最後採買', en:'Last-minute Shopping', q:'Macy\'s Herald Square', ll:[40.7508,-73.9890],
+          tip:'液體、食品類伴手禮放託運行李。' },
+        { m:'subway', min:15, d:'34 St–Herald Sq 搭 N/R/W 線至 49 St，步行約 3 分鐘。' },
+        { ...MOTTO, t:'10:45', dur:15, n:'Motto 退房',
+          tip:'11:00 前退房；航班較晚可請櫃台寄放行李。' },
+        { m:'taxi', min:60, d:'飯店前搭計程車前往機場。黃計程車曼哈頓 ⇄ JFK 固定費率約 $70，另加過路費、附加費與小費。' },
         { t:'依航班', dur:0, e:'✈️', n:'JFK 甘迺迪國際機場', en:'John F. Kennedy International Airport', q:'John F. Kennedy International Airport', ll:[40.6413,-73.7781],
           h:['<b>計程車：</b>約 50–80 分鐘，固定費率約 $70 起。',
              '<b>大眾運輸：</b>地鐵 E 線或 LIRR（Penn Station / Grand Central Madison）至 Jamaica 站，轉 AirTrain 至航廈，約 60–75 分鐘。',
@@ -738,7 +762,7 @@ function initMapAll() {
     if (mapAll) { mapAll.invalidateSize(); return; }
     mapAll = L.map('map-all', { scrollWheelZoom: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(mapAll);
-    DAYS.forEach(d => d.stops.filter(s => s.ll).forEach(s => {
+    DAYS.forEach(d => d.stops.filter(s => s.ll && !s.hotel).forEach(s => {
         const c = s.ll[1] > -72 ? 'b' : 'n';
         const mk = L.marker(s.ll, { icon: dotIcon(CITY[c].hex, d.day) }).addTo(mapAll);
         mk.bindPopup(`<div class="text-center p-1"><div class="text-3xl mb-1">${s.e}</div>
@@ -788,7 +812,7 @@ function renderDay(n) {
                 <h3 class="text-2xl sm:text-3xl font-extrabold leading-snug mb-2">${d.title}</h3>
                 <p class="text-white/85 text-sm">${d.sub}</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm">
-                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">景點 / 餐廳</div><div class="font-bold">${d.stops.length} 站</div></div>
+                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">景點 / 餐廳</div><div class="font-bold">${d.stops.filter(s => !s.hotel).length} 站</div></div>
                     <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">交通時間</div><div class="font-bold">約 ${durTxt(d.moveMin)}</div></div>
                     <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">氣溫（平均）</div><div class="font-bold">${d.lo}–${d.hi}°C</div></div>
                     <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">日落</div><div class="font-bold">🌇 ${d.sunset}</div></div>
