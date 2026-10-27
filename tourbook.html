@@ -65,8 +65,8 @@
                     <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-semibold tracking-wider mb-3 backdrop-blur-sm">2026.11.12 – 11.21 · V3 深度文史版</span>
                     <h1 class="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">波士頓 🚆 紐約<br class="sm:hidden"> 雙城慢旅</h1>
                     <div class="flex flex-wrap gap-x-5 gap-y-2 text-white/85 text-sm sm:text-base">
-                        <div class="flex items-center gap-2"><span class="text-xl">🏛️</span> 波士頓 3 天</div>
-                        <div class="flex items-center gap-2"><span class="text-xl">🗽</span> 紐約 7 天</div>
+                        <div class="flex items-center gap-2"><span class="text-xl">🏛️</span> 波士頓 3 晚</div>
+                        <div class="flex items-center gap-2"><span class="text-xl">🗽</span> 紐約 6 晚</div>
                         <div class="flex items-center gap-2"><span class="text-xl">🚇</span> 地鐵＋步行</div>
                         <div class="flex items-center gap-2"><span class="text-xl">📜</span> 每個景點附歷史與建築解析</div>
                     </div>
@@ -376,12 +376,11 @@ const DAYS = [
     ]
 },
 {
-    day:3, date:'11/14', dow:'六', city:'b', cityName:'波士頓 → 紐約', emoji:'🎓', sunset:'16:22', hi:10, lo:2,
-    title:'哈佛 × MIT 學術漫步 × 自由之路 → Amtrak 前往紐約',
-    sub:'早上退房並寄放行李，傍晚搭 Amtrak 從 South Station 前往紐約。',
-    note:'<b>行李提醒：</b>退房時請飯店代為保管行李，傍晚回飯店取件後再前往 South Station；或使用 Bounce / Radical Storage 等寄存服務。',
+    day:3, date:'11/14', dow:'六', city:'b', cityName:'波士頓', emoji:'🎓', sunset:'16:22', hi:10, lo:2,
+    title:'哈佛 × MIT 學術漫步 × 自由之路 × 港灣夕陽',
+    sub:'多住波士頓一晚，不必拖行李趕火車。傍晚港邊看夕陽，晚上在飯店老餐廳吃波士頓奶油派，早點休息準備明早的火車。',
     events:[
-        { m:'subway', min:20, d:'早上退房後，搭 Red Line 至 Harvard 站（市中心約 20 分鐘）。' },
+        { m:'subway', min:20, d:'從飯店步行至 Park Street 站，搭 Red Line 至 Harvard 站（約 20 分鐘）。' },
         { t:'09:00', dur:75, e:'🎓', n:'哈佛大學 & 哈佛廣場', en:'Harvard Yard & Harvard Square', q:'Harvard Yard, Cambridge, MA', ll:[42.3745,-71.1169],
           h:['創立於 1636 年，是全美歷史最悠久的高等學府。',
              '舊庭園（Harvard Yard）充滿常春藤盟校氛圍；約翰・哈佛雕像又稱「三謊言雕像」（人物非本人、哈佛非創辦人、年份有誤）。'],
@@ -402,42 +401,55 @@ const DAYS = [
         { m:'walk', min:8, d:'由舊州議會大廈沿 State St 步行約 8 分鐘。' },
         { t:'14:35', dur:75, e:'🦞', n:'Legal Sea Foods', en:'Legal Sea Foods – Long Wharf', q:'Legal Sea Foods Long Wharf 255 State St Boston', ll:[42.3599,-71.0505], addr:'255 State St, Boston', food:'seafood',
           tip:'招牌新英格蘭蛤蜊濃湯（曾多次端上總統就職典禮）、龍蝦堡，面港口視野佳。' },
-        { m:'taxi', min:45, d:'回飯店取行李 → 計程車 / Uber 前往 South Station（市區約 10–15 分鐘）。' },
-        { t:'16:35', dur:25, e:'🚉', n:'Amtrak：South Station 發車', en:'Boston South Station', q:'Boston South Station', ll:[42.3519,-71.0552],
-          h:['Acela 高速列車約 3 小時 40 分；Northeast Regional 約 4 小時 15 分。'],
-          tip:'票價浮動，越早買越便宜。往紐約建議坐右側靠窗，可看康乃狄克海岸線。咖啡車廂可買晚餐。' },
-        { m:'train', min:225, d:'Amtrak 17:00 發車（示意，以實際車票為準）→ New York Penn Station。' },
-        { t:'20:45', dur:0, e:'🗽', n:'抵達紐約 Penn Station', en:'Moynihan Train Hall / Penn Station', q:'Moynihan Train Hall', ll:[40.7506,-73.9935],
-          h:['對面的 Moynihan Train Hall 由原郵政總局（Beaux-Arts 建築）改建，2021 年啟用。'],
-          tip:'飯店 Motto by Hilton Times Square（150 W 48th St）：搭 1 線 34 St–Penn Station → 50 St 站，步行約 3 分鐘；或計程車約 10–15 分鐘。⚠️ 訂房為 11/15 入住，11/14 當晚需另訂住宿或延長訂房。' },
+        { m:'walk', min:3, d:'沿港邊步行約 3 分鐘。' },
+        { t:'15:55', dur:40, e:'🌅', n:'長碼頭港灣夕陽', en:'Long Wharf & Boston Harborwalk', q:'Long Wharf, Boston, MA', ll:[42.3601,-71.0490],
+          h:['長碼頭建於 1710 年代，曾是美洲最重要的商港碼頭之一，英軍 1768 年即由此登陸占領波士頓。'],
+          tip:'日落約 16:22，港邊風大，記得戴圍巾手套。' },
+        { m:'walk', min:12, d:'步行回飯店休息、先整理行李（明早搭早班火車）。' },
+        { t:'18:30', dur:90, e:'🥧', n:'Parker\'s Restaurant', en:'Parker\'s Restaurant – Omni Parker House', q:'Parker\'s Restaurant Omni Parker House Boston', ll:[42.3578,-71.0603], addr:'60 School St, Boston', food:'dinner',
+          h:['波士頓奶油派（Boston Cream Pie）與 Parker House 餐包皆誕生於此；狄更斯、愛默生等文人曾在此聚會。'],
+          tip:'若入住其他飯店，也值得專程來吃一份奶油派。週末建議先訂位。' },
     ]
 },
 {
-    day:4, date:'11/15', dow:'日', city:'n', cityName:'紐約', emoji:'🏛️', sunset:'16:36', hi:12, lo:5,
-    title:'大都會博物館 × 中央公園秋色 × 上東區鍍金時代',
-    sub:'11 月中旬是中央公園賞楓高峰。上午博物館、下午公園漫步、傍晚沿第五大道看豪宅。',
+    day:4, date:'11/15', dow:'日', city:'n', cityName:'波士頓 → 紐約', emoji:'🚆', sunset:'16:36', hi:12, lo:5,
+    title:'早班 Amtrak → 中央公園秋色 × 大都會博物館 × 上東區鍍金時代',
+    sub:'早上搭 Amtrak 前往紐約，中午先到飯店寄放行李；下午趁天亮逛中央公園，再進大都會，晚餐後回飯店入住。',
+    note:'<b>入住提醒：</b>Motto 16:00 後才能入住，中午抵達可先寄放行李（可詢問是否提早入住），晚餐後回飯店正式辦理。',
     events:[
-        { t:'09:15', dur:45, e:'☕', n:'Via Quadronno', en:'Via Quadronno', q:'Via Quadronno 25 E 73rd St New York', ll:[40.7720,-73.9644], addr:'25 E 73rd St, New York', food:'cafe',
-          tip:'米蘭風格小咖啡館，卡布奇諾與帕尼尼很有名。' },
-        { m:'walk', min:10, d:'Madison Ave → 5th Ave 步行約 10 分鐘。' },
-        { t:'10:10', dur:240, e:'🏺', n:'大都會藝術博物館', en:'The Metropolitan Museum of Art', q:'The Metropolitan Museum of Art', ll:[40.7794,-73.9632], addr:'1000 5th Ave, New York',
-          h:['成立於 1870 年，世界四大博物館之一，館藏跨越 5000 年人類文明。',
-             '必看：完整的埃及丹鐸神廟（Temple of Dendur）、歐洲古典畫作（維梅爾、林布蘭）、亞洲藝術與蘇州園林「明軒」。'],
-          tip:'外州遊客需購票；館內咖啡廳可簡單午餐。' },
-        { m:'walk', min:15, d:'從博物館南側進入中央公園，步行約 15 分鐘。' },
-        { t:'14:25', dur:75, e:'⛲', n:'中央公園・畢士大噴泉', en:'Central Park – Bethesda Terrace', q:'Bethesda Terrace, Central Park', ll:[40.7740,-73.9708],
+        { m:'taxi', min:10, d:'07:30 退房 → 計程車 / Uber 至 South Station（約 10 分鐘）。' },
+        { t:'07:45', dur:20, e:'🚉', n:'Amtrak：South Station 發車', en:'Boston South Station', q:'Boston South Station', ll:[42.3519,-71.0552],
+          h:['Acela 高速列車約 3 小時 40 分；Northeast Regional 約 4 小時 15 分。'],
+          tip:'票價浮動，越早買越便宜。往紐約建議坐右側靠窗，可看康乃狄克海岸線。咖啡車廂可買早餐。' },
+        { m:'train', min:225, d:'Amtrak 約 08:05 發車（示意，以實際車票為準）→ New York Penn Station。' },
+        { t:'11:50', dur:0, e:'🗽', n:'抵達紐約 Penn Station', en:'Moynihan Train Hall / Penn Station', q:'Moynihan Train Hall', ll:[40.7506,-73.9935],
+          h:['對面的 Moynihan Train Hall 由原郵政總局（Beaux-Arts 建築）改建，2021 年啟用。'] },
+        { m:'subway', min:15, d:'1 線 34 St–Penn Station → 50 St，步行約 3 分鐘；或計程車約 10–15 分鐘。' },
+        { t:'12:10', dur:20, e:'🏨', n:'Motto by Hilton 寄放行李', en:'Motto by Hilton New York City Times Square', q:'Motto by Hilton New York City Times Square', ll:[40.7598,-73.9840], addr:'150 W 48th St, New York',
+          tip:'入住 16:00 後、退房 11:00 前。電話 +1-212-6688648。' },
+        { m:'subway', min:25, d:'49 St（N/R/W）→ 5 Av/59 St，沿 Madison Ave 北行步行約 10 分鐘；或計程車約 15 分鐘。' },
+        { t:'12:55', dur:50, e:'☕', n:'Via Quadronno', en:'Via Quadronno', q:'Via Quadronno 25 E 73rd St New York', ll:[40.7720,-73.9644], addr:'25 E 73rd St, New York', food:'cafe',
+          tip:'米蘭風格小咖啡館，帕尼尼與卡布奇諾很有名，當午餐剛好。' },
+        { m:'walk', min:10, d:'由 E 72nd St 進入中央公園，步行約 10 分鐘。' },
+        { t:'13:55', dur:60, e:'⛲', n:'中央公園・畢士大噴泉', en:'Central Park – Bethesda Terrace', q:'Bethesda Terrace, Central Park', ll:[40.7740,-73.9708],
           h:['1857 年由景觀設計大師奧姆斯特德與沃克斯設計，是世界都市公園的典範。',
              '畢士大噴泉與「水之天使」雕像為公園心臟地帶；拱廊下的明頓瓷磚天花板非常精緻。'],
-          tip:'串連：克麗奧佩脫拉方尖碑 → 畢士大噴泉 → 弓橋（Bow Bridge）→ 文學步道（The Mall）。' },
-        { m:'walk', min:15, d:'出公園至 5th Ave & E 79th St，步行約 15 分鐘。' },
-        { t:'15:55', dur:120, e:'🏰', n:'上東區鍍金時代建築漫步', en:'Upper East Side Gilded Age Mansions', q:'Fifth Avenue & E 79th St, New York', ll:[40.7781,-73.9622],
+          tip:'串連：文學步道（The Mall）→ 畢士大噴泉 → 弓橋（Bow Bridge）→ 克麗奧佩脫拉方尖碑，順路北行到大都會。日落約 16:36，公園趁天亮逛。' },
+        { m:'walk', min:15, d:'經方尖碑出公園至大都會，步行約 15 分鐘。' },
+        { t:'15:10', dur:110, e:'🏺', n:'大都會藝術博物館', en:'The Metropolitan Museum of Art', q:'The Metropolitan Museum of Art', ll:[40.7794,-73.9632], addr:'1000 5th Ave, New York',
+          h:['成立於 1870 年，世界四大博物館之一，館藏跨越 5000 年人類文明。',
+             '必看：完整的埃及丹鐸神廟（Temple of Dendur）、歐洲古典畫作（維梅爾、林布蘭）、亞洲藝術與蘇州園林「明軒」。'],
+          tip:'週日 17:00 閉館，約 2 小時挑重點看。外州遊客需購票，可先線上買。想再看可利用 11/20 週五夜間（開放至 21:00）。' },
+        { t:'17:00', dur:75, e:'🏰', n:'上東區鍍金時代建築夜行', en:'Upper East Side Gilded Age Mansions', q:'Fifth Avenue & E 79th St, New York', ll:[40.7781,-73.9622],
           h:['19 世紀末，美國工業鉅子沿第五大道興建仿歐洲宮殿的豪宅，形成「百萬富翁街」。',
              '沿第五大道南行：烏克蘭學院（法國哥德式）→ 杜克公館（1 E 78th）→ 佩恩・惠特尼公館（972 Fifth Ave）→ 弗里克收藏館（1 E 70th）。'],
-          tip:'最後轉入麥迪遜大道，一路精品名店，散步到 63 街吃晚餐。' },
+          tip:'天已黑，豪宅點燈別有氣氛。最後轉入麥迪遜大道，一路精品櫥窗，散步到 63 街吃晚餐。' },
         { m:'walk', min:15, d:'沿 Madison Ave 南行約 15 分鐘。' },
         { t:'18:30', dur:105, e:'🍷', n:'Café Boulud', en:'Café Boulud', q:'Café Boulud 100 E 63rd St New York', ll:[40.7650,-73.9663], addr:'100 E 63rd St, New York', food:'dinner',
           tip:'名廚 Daniel Boulud 旗下法式餐廳，請提前訂位，服裝建議 smart casual。' },
-        { m:'subway', min:20, d:'回程：Lexington Av/63 St（F/Q）或 Lexington Av/59 St（4/5/6、N/R/W）。' },
+        { m:'subway', min:20, d:'Lexington Av/59 St（N/R/W）→ 49 St，步行約 3 分鐘；或計程車約 15 分鐘。' },
+        { t:'20:35', dur:0, e:'🏨', n:'回 Motto 辦理入住', en:'Motto by Hilton New York City Times Square', q:'Motto by Hilton New York City Times Square', ll:[40.7598,-73.9840], addr:'150 W 48th St, New York',
+          tip:'取回寄放的行李，正式入住（6 晚，11/21 11:00 前退房）。' },
     ]
 },
 {
@@ -973,7 +985,7 @@ function renderExpenses() {
 // 8. Info
 // ==========================================
 const BOOKINGS = [
-    ['amtrak', '🚆 Amtrak 波士頓 → 紐約', '11/14 傍晚・Acela 或 Northeast Regional'],
+    ['amtrak', '🚆 Amtrak 波士頓 → 紐約', '11/15 早上 08:00 左右・Acela 或 Northeast Regional'],
     ['gardner', '🌿 加德納博物館入場時段', '11/13 13:15'],
     ['boulud', '🍷 Café Boulud 晚餐', '11/15 18:30'],
     ['vessel', '🍯 Vessel 登頂時段', '11/16 09:30'],
@@ -1004,7 +1016,7 @@ const LUGGAGE = [
 const TRIP_FIELDS = [
     ['flight-out', '✈️ 去程航班', '例：BR32 11/12 抵達 BOS', false],
     ['flight-back', '✈️ 回程航班', '例：BR31 11/21 JFK 起飛', false],
-    ['hotel-b', '🏨 波士頓住宿（11/12–11/14）', '建議：Omni Parker House, 60 School St', true],
+    ['hotel-b', '🏨 波士頓住宿（11/12–11/15，3 晚）', '建議：Omni Parker House, 60 School St', true],
     ['hotel-n', '🏨 紐約住宿（11/15 入住 16:00 後 – 11/21 退房 11:00 前，6 晚）', '飯店名稱或地址', true, 'Motto by Hilton New York City Times Square, 150 W 48th St, New York, NY 10036'],
 ];
 
