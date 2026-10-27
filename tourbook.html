@@ -42,10 +42,13 @@
     <nav class="fixed top-0 w-full z-50 glass">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between items-center h-16">
-                <a href="#dashboard" class="flex items-center gap-2">
-                    <span class="text-2xl">🗽</span>
-                    <span class="font-bold text-lg tracking-tight text-slate-800">美東雙城慢旅</span>
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" class="px-2 py-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-sm font-bold transition" title="回到旅行足跡">‹ 🌍</a>
+                    <a href="#dashboard" class="flex items-center gap-2">
+                        <span class="text-2xl">🗽</span>
+                        <span class="font-bold text-lg tracking-tight text-slate-800">美東雙城慢旅</span>
+                    </a>
+                </div>
                 <div class="hidden md:flex space-x-1" id="nav-desktop"></div>
             </div>
         </div>
@@ -312,32 +315,31 @@ const FOOD_CAT = {
 const DAYS = [
 {
     day:1, date:'11/12', dow:'四', city:'b', cityName:'波士頓', emoji:'🍂', sunset:'16:24', hi:10, lo:2,
-    title:'燈塔山紅磚巷弄 × 公共花園 × 圖書館的黃昏',
-    sub:'下午抵達，以步行為主的輕鬆暖身日。日落早，先拍橡子街再逛花園。',
+    title:'飯店入住 × 燈塔山煤氣燈黃昏 × 公共花園 × 圖書館夜讀',
+    sub:'16:00 從飯店出發的輕鬆暖身日。日落約 16:24，正好趕上燈塔山煤氣燈亮起的藍調時刻。',
     events:[
-        { t:'13:00', dur:60, e:'🛬', n:'抵達波士頓羅根機場', en:'Boston Logan International Airport (BOS)', q:'Boston Logan International Airport', ll:[42.3656,-71.0096],
-          tip:'入境後先到飯店寄放行李或入住，再出發前往燈塔山。' },
-        { m:'subway', min:40, d:'機場搭 Silver Line SL1（從機場出發免費）至 South Station，轉 Red Line 至 Charles/MGH 站；或 Uber / 計程車約 20–30 分鐘。' },
-        { t:'14:45', dur:30, e:'☕', n:'Tatte Bakery & Cafe', en:'Tatte – Charles St', q:'Tatte Bakery & Cafe 70 Charles St Boston', ll:[42.3587,-71.0707], addr:'70 Charles St, Boston', food:'cafe',
-          tip:'推薦開心果可頌、Shakshuka。查爾斯街本身就是燈塔山的古董店與小店街。' },
-        { m:'walk', min:5, d:'步行約 5 分鐘上坡。' },
-        { t:'15:20', dur:40, e:'📸', n:'燈塔山 & 橡子街', en:'Beacon Hill & Acorn Street', q:'Acorn Street, Boston, MA', ll:[42.3576,-71.0679],
+        { t:'16:00', dur:30, e:'🏨', n:'Omni Parker House 入住（建議）', en:'Omni Parker House', q:'Omni Parker House 60 School St Boston', ll:[42.3578,-71.0603], addr:'60 School St, Boston',
+          h:['1855 年開業，全美持續營業最久的飯店，就在自由之路上；波士頓奶油派與 Parker House 餐包的發源地。',
+             '地點：Park Street 站（Red / Green Line）步行 3 分鐘，Government Center 站（Blue Line 直通機場）步行 3 分鐘；北區、昆西市場、燈塔山皆可步行，往 South Station 計程車約 10 分鐘。'],
+          tip:'機場來：Blue Line Airport → Government Center，或 Uber / 計程車約 20–30 分鐘。其他選擇：The Liberty Hotel（舊監獄改建、Charles/MGH 站，較貴）、Boston Park Plaza（Back Bay、價位較親民）。' },
+        { m:'walk', min:10, d:'穿過波士頓公園東北角，沿 Beacon St 上坡步行約 10 分鐘。' },
+        { t:'16:40', dur:45, e:'📸', n:'燈塔山 & 橡子街', en:'Beacon Hill & Acorn Street', q:'Acorn Street, Boston, MA', ll:[42.3576,-71.0679],
           h:['<b>歷史背景：</b>18 世紀末開發，曾是波士頓政治與文化名流聚居的上流住宅區，也是 19 世紀廢奴運動的重要據點之一。',
              '<b>建築特色：</b>保存極為完好的聯邦風格（Federal-style）與維多利亞式紅磚建築，漆黑大門、黃銅門把與古老煤氣路燈。橡子街鋪滿鵝卵石，被譽為美國最具英倫古典風情的歷史街道。'],
-          tip:'順遊路易斯堡廣場與金頂的麻州議會大廈。鵝卵石路面請穿防滑好走的鞋。' },
-        { m:'walk', min:10, d:'沿 Beacon St 下坡步行約 10 分鐘。' },
-        { t:'16:10', dur:40, e:'🦆', n:'波士頓公園 & 公共花園', en:'Boston Common & Public Garden', q:'Boston Public Garden', ll:[42.3541,-71.0703],
+          tip:'日落後煤氣燈亮起最有氣氛。順遊路易斯堡廣場與查爾斯街小店；想吃點心可到 Tatte（70 Charles St）。鵝卵石路面請穿防滑好走的鞋。' },
+        { m:'walk', min:10, d:'沿 Charles St / Beacon St 下坡步行約 10 分鐘。' },
+        { t:'17:35', dur:25, e:'🦆', n:'公共花園夜色', en:'Boston Public Garden', q:'Boston Public Garden', ll:[42.3541,-71.0703],
           h:['波士頓公園（1634）是全美最古老的城市公園；相鄰的公共花園（1837）是全美第一座公共植物園。',
-             '必看「讓路給小鴨」（Make Way for Ducklings）銅像；11 月天鵝船已停駛，但秋葉與黃昏湖景很美。'],
+             '必看「讓路給小鴨」（Make Way for Ducklings）銅像；11 月天鵝船已停駛，夜晚湖畔燈影另有味道。'],
           tip:'沿聯邦大道林蔭道（Commonwealth Ave Mall）往西走，兩側是 19 世紀褐石豪宅。' },
         { m:'walk', min:15, d:'經 Commonwealth Ave Mall 步行約 15 分鐘；或 Green Line Arlington → Copley 1 站。' },
-        { t:'17:05', dur:75, e:'📚', n:'波士頓公共圖書館・貝茨廳', en:'Boston Public Library – Bates Hall', q:'Boston Public Library Central Library Copley Square', ll:[42.3493,-71.0782], addr:'700 Boylston St, Copley Square',
+        { t:'18:15', dur:60, e:'📚', n:'波士頓公共圖書館・貝茨廳', en:'Boston Public Library – Bates Hall', q:'Boston Public Library Central Library Copley Square', ll:[42.3493,-71.0782], addr:'700 Boylston St, Copley Square',
           h:['<b>歷史背景：</b>建於 1848 年，是全美第一座由公家資助的大型免費市立圖書館，宗旨為「Free to All」。',
              '<b>建築特色：</b>麥金樓（McKim Building）為新古典復興式風格。貝茨廳擁有高聳的半圓形桶形拱頂、古典綠色罩燈與深色木質長桌，宛如霍格華茲閱讀室。'],
-          tip:'週一至四通常開放至 20:00。別錯過麥金樓中庭迴廊，及對面的三一教堂。' },
+          tip:'11/12 週四，通常開放至 20:00。別錯過麥金樓中庭迴廊，及對面點燈的三一教堂。' },
         { m:'subway', min:25, d:'Green Line Copley → Haymarket（約 10 分鐘），步行 7 分鐘進入北區。' },
-        { t:'18:50', dur:75, e:'🦑', n:'The Daily Catch', en:'The Daily Catch – North End', q:'The Daily Catch 323 Hanover St Boston', ll:[42.3646,-71.0544], addr:'323 Hanover St, Boston', food:'seafood',
-          tip:'招牌墨魚汁黑麵、炸花枝。座位很少常需排隊，建議早點到。' },
+        { t:'19:40', dur:75, e:'🦑', n:'The Daily Catch', en:'The Daily Catch – North End', q:'The Daily Catch 323 Hanover St Boston', ll:[42.3646,-71.0544], addr:'323 Hanover St, Boston', food:'seafood',
+          tip:'招牌墨魚汁黑麵、炸花枝。座位很少常需排隊；排太久可改 Giacomo’s（355 Hanover St）。' },
     ]
 },
 {
@@ -407,7 +409,7 @@ const DAYS = [
         { m:'train', min:225, d:'Amtrak 17:00 發車（示意，以實際車票為準）→ New York Penn Station。' },
         { t:'20:45', dur:0, e:'🗽', n:'抵達紐約 Penn Station', en:'Moynihan Train Hall / Penn Station', q:'Moynihan Train Hall', ll:[40.7506,-73.9935],
           h:['對面的 Moynihan Train Hall 由原郵政總局（Beaux-Arts 建築）改建，2021 年啟用。'],
-          tip:'依飯店位置搭地鐵（A/C/E、1/2/3）或計程車前往。' },
+          tip:'飯店 Motto by Hilton Times Square（150 W 48th St）：搭 1 線 34 St–Penn Station → 50 St 站，步行約 3 分鐘；或計程車約 10–15 分鐘。⚠️ 訂房為 11/15 入住，11/14 當晚需另訂住宿或延長訂房。' },
     ]
 },
 {
@@ -1002,8 +1004,8 @@ const LUGGAGE = [
 const TRIP_FIELDS = [
     ['flight-out', '✈️ 去程航班', '例：BR32 11/12 抵達 BOS', false],
     ['flight-back', '✈️ 回程航班', '例：BR31 11/21 JFK 起飛', false],
-    ['hotel-b', '🏨 波士頓住宿（11/12–11/14）', '飯店名稱或地址', true],
-    ['hotel-n', '🏨 紐約住宿（11/14–11/21）', '飯店名稱或地址', true],
+    ['hotel-b', '🏨 波士頓住宿（11/12–11/14）', '建議：Omni Parker House, 60 School St', true],
+    ['hotel-n', '🏨 紐約住宿（11/15 入住 16:00 後 – 11/21 退房 11:00 前，6 晚）', '飯店名稱或地址', true, 'Motto by Hilton New York City Times Square, 150 W 48th St, New York, NY 10036'],
 ];
 
 function accordion(containerId, items, renderBody) {
@@ -1057,16 +1059,16 @@ function renderInfo() {
     accordion('transport-acc', TRANSPORT, list => `<ul class="text-sm text-slate-700 space-y-1.5">${list.map(x => `<li class="flex gap-2"><span class="text-slate-400">▪</span><span>${x}</span></li>`).join('')}</ul>`);
 
     const tf = store.get('tour-trip', {});
-    document.getElementById('trip-fields').innerHTML = TRIP_FIELDS.map(([k, label, ph, isPlace]) => `
+    document.getElementById('trip-fields').innerHTML = TRIP_FIELDS.map(([k, label, ph, isPlace, def]) => `
         <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
             <div class="flex justify-between items-center mb-1.5">
                 <span class="text-sm font-bold text-slate-700">${label}</span>
-                ${isPlace ? `<a data-nav="${k}" target="_blank" rel="noopener" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-bold ${tf[k] ? '' : 'hidden'}">📍 導航</a>` : ''}
+                ${isPlace ? `<a data-nav="${k}" target="_blank" rel="noopener" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-bold ${(tf[k] ?? def) ? '' : 'hidden'}">📍 導航</a>` : ''}
             </div>
-            <input data-field="${k}" value="${(tf[k] || '').replace(/"/g, '&quot;')}" placeholder="${ph}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <input data-field="${k}" value="${(tf[k] ?? def ?? '').replace(/"/g, '&quot;')}" placeholder="${ph}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
         </div>`).join('');
     const syncNav = () => document.querySelectorAll('[data-nav]').forEach(a => {
-        const v = store.get('tour-trip', {})[a.dataset.nav];
+        const v = store.get('tour-trip', {})[a.dataset.nav] ?? TRIP_FIELDS.find(f => f[0] === a.dataset.nav)[4];
         a.classList.toggle('hidden', !v);
         if (v) a.href = G(v);
     });
