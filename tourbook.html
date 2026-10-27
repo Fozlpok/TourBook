@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美東雙城慢旅 🗽 波士頓 × 紐約</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        .glass { background: rgba(255,255,255,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226,232,240,.8); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+
+        /* Timeline */
+        .timeline-container::before { content: ''; position: absolute; top: 0; bottom: 0; left: 24px; width: 2px; background-color: #cbd5e1; }
+
+        /* 精簡模式 */
+        .compact-mode .detail-block { display: none !important; }
+
+        /* Checkbox */
+        .custom-checkbox:checked + div { background-color: #3b82f6; border-color: #3b82f6; }
+        .custom-checkbox:checked + div svg { display: block; }
+        .custom-checkbox:checked ~ span { color: #94a3b8; text-decoration: line-through; }
+
+        .leaflet-popup-content-wrapper { border-radius: .75rem; }
+        .num-icon { background: transparent; border: none; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .animate-fade-in { animation: fade-in .35s ease-out; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-20 md:pb-0">
+
+    <!-- ================= Top Navigation ================= -->
+    <nav class="fixed top-0 w-full z-50 glass">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-16">
+                <a href="#dashboard" class="flex items-center gap-2">
+                    <span class="text-2xl">🗽</span>
+                    <span class="font-bold text-lg tracking-tight text-slate-800">美東雙城慢旅</span>
+                </a>
+                <div class="hidden md:flex space-x-1" id="nav-desktop"></div>
+            </div>
+        </div>
+    </nav>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur border-t border-slate-200 grid grid-cols-5" id="nav-mobile"></nav>
+
+    <main class="pt-24 px-4 sm:px-6 max-w-6xl mx-auto min-h-screen">
+
+        <!-- ================= VIEW 1: Dashboard ================= -->
+        <section id="view-dashboard" class="view space-y-6 pb-10">
+            <div class="bg-gradient-to-br from-rose-600 via-indigo-600 to-blue-700 rounded-2xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-semibold tracking-wider mb-3 backdrop-blur-sm">2026.11.12 – 11.21 · V3 深度文史版</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">波士頓 🚆 紐約<br class="sm:hidden"> 雙城慢旅</h1>
+                    <div class="flex flex-wrap gap-x-5 gap-y-2 text-white/85 text-sm sm:text-base">
+                        <div class="flex items-center gap-2"><span class="text-xl">🏛️</span> 波士頓 3 天</div>
+                        <div class="flex items-center gap-2"><span class="text-xl">🗽</span> 紐約 7 天</div>
+                        <div class="flex items-center gap-2"><span class="text-xl">🚇</span> 地鐵＋步行</div>
+                        <div class="flex items-center gap-2"><span class="text-xl">📜</span> 每個景點附歷史與建築解析</div>
+                    </div>
+                </div>
+                <svg class="absolute -bottom-10 -right-10 opacity-20 w-64 h-64" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            </div>
+
+            <!-- Weather -->
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200">
+                <div class="flex items-baseline justify-between mb-4 gap-2">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">🌤️ 每日天氣與日落</h3>
+                    <span class="text-xs text-slate-400">11 月中旬歷史平均，非預報</span>
+                </div>
+                <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar" id="weather-container"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Map -->
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
+                    <div class="flex items-center justify-between mb-3 gap-2">
+                        <h3 class="text-lg font-semibold">🗺️ 全行程地圖</h3>
+                        <div class="flex gap-1 text-xs font-bold" id="map-filter">
+                            <button data-c="all" class="px-2.5 py-1 rounded-full bg-slate-800 text-white">全部</button>
+                            <button data-c="b" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">波士頓</button>
+                            <button data-c="n" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">紐約</button>
+                        </div>
+                    </div>
+                    <div id="map-all" class="h-[380px] rounded-xl z-10"></div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200">
+                        <h3 class="text-lg font-semibold mb-1">📊 體力分析（交通 vs 遊玩）</h3>
+                        <p class="text-xs text-slate-400 mb-3">依每日行程時間自動計算，點長條可跳到當天</p>
+                        <div class="relative w-full h-[230px]"><canvas id="intensityChart"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200">
+                        <h3 class="text-lg font-semibold mb-3">✨ 行程亮點快搜</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="highlights"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-indigo-50 px-5 py-4 border-b border-indigo-100 flex items-center gap-2">
+                    <span class="text-xl">📅</span><h3 class="font-bold text-indigo-900">每日行程總覽</h3>
+                </div>
+                <div class="divide-y divide-slate-100" id="overview-list"></div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: Daily Itinerary ================= -->
+        <section id="view-itinerary" class="view hidden pb-10">
+            <div class="mb-4 flex justify-between items-end gap-3">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">📅 每日行程</h2>
+                    <p class="text-slate-500 text-sm mt-1">一天一頁，點日期切換。</p>
+                </div>
+                <button id="compact-btn" class="shrink-0 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition shadow-sm">📖 詳細模式</button>
+            </div>
+            <div class="sticky top-16 z-30 bg-slate-50/95 backdrop-blur-md py-2 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-slate-200 mb-6">
+                <div class="flex gap-2 overflow-x-auto no-scrollbar" id="day-tabs"></div>
+            </div>
+            <div id="day-panel"></div>
+        </section>
+
+        <!-- ================= VIEW 3: Food ================= -->
+        <section id="view-food" class="view hidden pb-10">
+            <h2 class="text-2xl font-bold text-slate-800 mb-1">🍔 美食口袋名單</h2>
+            <p class="text-slate-500 text-sm mb-4">PDF 中的全部餐廳，依行程日期排列。</p>
+            <div class="flex flex-wrap gap-2 mb-6" id="food-filters"></div>
+            <div id="food-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </section>
+
+        <!-- ================= VIEW 4: Tools ================= -->
+        <section id="view-tools" class="view hidden pb-10">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">🧮 實用工具</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Currency -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-3 mb-5"><span class="text-2xl p-2 bg-blue-50 rounded-xl">💱</span><h3 class="text-xl font-bold">匯率換算器</h3></div>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <span class="text-sm font-medium text-slate-600">自訂匯率（USD → TWD）</span>
+                            <input type="number" id="custom-rate" value="31.5" step="0.1" class="w-24 px-3 py-1 border border-slate-300 rounded text-right bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                            <div class="bg-slate-100 px-4 py-3 font-bold text-slate-600 w-24 text-center border-r border-slate-200">🇺🇸 USD</div>
+                            <input type="number" id="usd-input" class="flex-1 min-w-0 px-4 py-3 text-lg focus:outline-none" placeholder="輸入美金">
+                        </div>
+                        <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                            <div class="bg-slate-100 px-4 py-3 font-bold text-slate-600 w-24 text-center border-r border-slate-200">🇹🇼 TWD</div>
+                            <input type="number" id="twd-input" class="flex-1 min-w-0 px-4 py-3 text-lg focus:outline-none" placeholder="輸入台幣">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tip calculator -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-3 mb-5"><span class="text-2xl p-2 bg-amber-50 rounded-xl">🧾</span><h3 class="text-xl font-bold">小費計算機</h3></div>
+                    <div class="space-y-4">
+                        <label class="block">
+                            <span class="text-sm font-medium text-slate-600">帳單金額（稅前，USD）</span>
+                            <input type="number" id="tip-bill" placeholder="例如 120" class="mt-1 w-full px-4 py-3 border border-slate-300 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        </label>
+                        <div>
+                            <span class="text-sm font-medium text-slate-600">小費比例</span>
+                            <div class="grid grid-cols-4 gap-2 mt-1" id="tip-pcts"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="block"><span class="text-sm font-medium text-slate-600">稅率 %</span>
+                                <select id="tip-tax" class="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white">
+                                    <option value="8.875">紐約 8.875%</option><option value="7">波士頓 7%</option><option value="0">已含稅</option>
+                                </select></label>
+                            <label class="block"><span class="text-sm font-medium text-slate-600">人數</span>
+                                <input type="number" id="tip-people" value="2" min="1" class="mt-1 w-full px-3 py-2.5 border border-slate-300 rounded-xl"></label>
+                        </div>
+                        <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md text-sm space-y-1" id="tip-result"></div>
+                    </div>
+                </div>
+
+                <!-- Expense -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col h-[480px] lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-5"><span class="text-2xl p-2 bg-green-50 rounded-xl">💸</span><h3 class="text-xl font-bold">旅費記帳本</h3><span class="text-xs text-slate-400 ml-auto">僅儲存在此瀏覽器</span></div>
+                    <form id="expense-form" class="flex gap-2 mb-4">
+                        <input type="text" id="expense-name" required placeholder="項目（如：晚餐）" class="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <input type="number" id="expense-amount" required placeholder="USD" step="0.01" class="w-24 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">新增</button>
+                    </form>
+                    <div class="flex-1 overflow-y-auto mb-4 border border-slate-100 rounded-lg bg-slate-50 p-2 shadow-inner"><ul id="expense-list" class="space-y-2"></ul></div>
+                    <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md">
+                        <div class="flex justify-between items-center mb-1"><span class="text-slate-300">總計（USD）</span><span class="text-2xl font-bold" id="total-usd">$0.00</span></div>
+                        <div class="flex justify-between items-center text-sm"><span class="text-slate-400">約合台幣（TWD）</span><span class="text-green-400 font-medium" id="total-twd">NT$0</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 5: Info ================= -->
+        <section id="view-info" class="view hidden pb-10 space-y-6">
+            <h2 class="text-2xl font-bold text-slate-800">ℹ️ 準備與重要資訊</h2>
+
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-5 text-sm leading-relaxed">
+                <div class="font-bold mb-1">⚠️ 與原 PDF 的行程差異</div>
+                ① <b>11/16 與 11/17 對調</b>：惠特尼美術館週二休館、摩根圖書館週一休館。<br>
+                ② <b>11/13 改為上午先走北區</b>：保羅・利維爾故居冬季約 16:15 關門、加德納 11:00 才開。
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Flight & Hotel -->
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center gap-2"><span class="text-xl">✈️</span><h3 class="font-bold text-indigo-900">航班與住宿</h3><span class="text-xs text-indigo-400 ml-auto">自行填寫・存在此瀏覽器</span></div>
+                    <div class="p-5 space-y-3" id="trip-fields"></div>
+                </div>
+
+                <!-- Bookings -->
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-2"><span class="text-xl">✅</span><h3 class="font-bold text-emerald-900">預約清單</h3><span class="text-xs text-emerald-500 ml-auto" id="booking-count"></span></div>
+                    <div class="p-3" id="booking-list"></div>
+                </div>
+            </div>
+
+            <!-- Transport -->
+            <div>
+                <h3 class="text-xl font-bold mb-3">🚆 交通攻略</h3>
+                <div class="space-y-3" id="transport-acc"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <h3 class="font-bold mb-3">🏛️ 休館日提醒</h3>
+                    <ul class="text-sm space-y-1.5 text-slate-700">
+                        <li>🔴 加德納博物館：週二</li><li>🔴 波士頓美術館 MFA：週二</li>
+                        <li>🔴 大都會博物館：週三</li><li>🔴 惠特尼美術館：週二</li>
+                        <li>🔴 摩根圖書館：週一</li><li>🔴 Grand Central Oyster Bar：週日</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <h3 class="font-bold mb-3">💵 小費與消費</h3>
+                    <ul class="text-sm space-y-1.5 text-slate-700">
+                        <li>▪ 餐廳小費 18–22%（帳單常附建議比例）</li>
+                        <li>▪ 計程車 / Uber 15–20%</li>
+                        <li>▪ 飯店房務每晚 $3–5</li>
+                        <li>▪ 紐約餐飲稅 8.875%、麻州約 7%</li>
+                        <li>▪ 標價皆未含稅</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <h3 class="font-bold mb-3">🛂 入境與通訊</h3>
+                    <ul class="text-sm space-y-1.5 text-slate-700">
+                        <li>▪ 臺灣護照免簽入境須<b>事先申請 ESTA</b></li>
+                        <li>▪ 美國電壓 120V、插頭與臺灣相同</li>
+                        <li>▪ 建議 eSIM 或國際漫遊（Google Maps 必備）</li>
+                        <li>▪ 時區：EST，比臺灣慢 13 小時</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Luggage -->
+            <div>
+                <h3 class="text-xl font-bold mb-3">🧳 行李清單</h3>
+                <div class="space-y-3" id="luggage-acc"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-8 text-slate-400 text-xs border-t border-slate-200 bg-white/50">
+        時間為建議安排，營業時間、票價請出發前至官網確認 · 地圖資料 © OpenStreetMap
+    </footer>
+
+<script>
+// ==========================================
+// 1. Helpers
+// ==========================================
+const G = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+const DIR = (a, b, mode) => 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(a) +
+    '&destination=' + encodeURIComponent(b) + '&travelmode=' + mode;
+const MOVE = {
+    walk:   { icon:'🚶', label:'步行', g:'walking' },
+    subway: { icon:'🚇', label:'地鐵', g:'transit' },
+    train:  { icon:'🚆', label:'火車', g:'transit' },
+    ferry:  { icon:'⛴️', label:'渡輪', g:'transit' },
+    taxi:   { icon:'🚕', label:'計程車', g:'driving' },
+};
+const toMin = t => /^\d{1,2}:\d{2}$/.test(t || '') ? (+t.split(':')[0]) * 60 + (+t.split(':')[1]) : null;
+const fmt = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const durTxt = m => m >= 60 ? Math.floor(m / 60) + ' 小時' + (m % 60 ? ' ' + m % 60 + ' 分' : '') : m + ' 分';
+const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const CITY = {
+    b: { name:'波士頓', grad:'from-rose-600 to-orange-500', dot:'bg-rose-500', soft:'bg-rose-50 border-rose-100 text-rose-900', hex:'#e11d48' },
+    n: { name:'紐約',   grad:'from-blue-600 to-indigo-700', dot:'bg-blue-500', soft:'bg-blue-50/60 border-blue-100 text-blue-900', hex:'#2563eb' },
+};
+const FOOD_CAT = {
+    seafood: '🦞 海鮮', cafe: '☕ 早餐咖啡', dessert: '🍰 甜點', dinner: '🍽️ 正餐', casual: '🌮 輕食小吃'
+};
+
+// ==========================================
+// 2. 行程資料
+//    stop: t 時間, dur 停留(分), e emoji, n 名稱, en 英文, q 地圖搜尋, ll 座標, h 歷史, tip 提醒, food 類別
+//    move: m 交通方式, d 說明, min 分鐘
+// ==========================================
+const DAYS = [
+{
+    day:1, date:'11/12', dow:'四', city:'b', cityName:'波士頓', emoji:'🍂', sunset:'16:24', hi:10, lo:2,
+    title:'燈塔山紅磚巷弄 × 公共花園 × 圖書館的黃昏',
+    sub:'下午抵達，以步行為主的輕鬆暖身日。日落早，先拍橡子街再逛花園。',
+    events:[
+        { t:'13:00', dur:60, e:'🛬', n:'抵達波士頓羅根機場', en:'Boston Logan International Airport (BOS)', q:'Boston Logan International Airport', ll:[42.3656,-71.0096],
+          tip:'入境後先到飯店寄放行李或入住，再出發前往燈塔山。' },
+        { m:'subway', min:40, d:'機場搭 Silver Line SL1（從機場出發免費）至 South Station，轉 Red Line 至 Charles/MGH 站；或 Uber / 計程車約 20–30 分鐘。' },
+        { t:'14:45', dur:30, e:'☕', n:'Tatte Bakery & Cafe', en:'Tatte – Charles St', q:'Tatte Bakery & Cafe 70 Charles St Boston', ll:[42.3587,-71.0707], addr:'70 Charles St, Boston', food:'cafe',
+          tip:'推薦開心果可頌、Shakshuka。查爾斯街本身就是燈塔山的古董店與小店街。' },
+        { m:'walk', min:5, d:'步行約 5 分鐘上坡。' },
+        { t:'15:20', dur:40, e:'📸', n:'燈塔山 & 橡子街', en:'Beacon Hill & Acorn Street', q:'Acorn Street, Boston, MA', ll:[42.3576,-71.0679],
+          h:['<b>歷史背景：</b>18 世紀末開發，曾是波士頓政治與文化名流聚居的上流住宅區，也是 19 世紀廢奴運動的重要據點之一。',
+             '<b>建築特色：</b>保存極為完好的聯邦風格（Federal-style）與維多利亞式紅磚建築，漆黑大門、黃銅門把與古老煤氣路燈。橡子街鋪滿鵝卵石，被譽為美國最具英倫古典風情的歷史街道。'],
+          tip:'順遊路易斯堡廣場與金頂的麻州議會大廈。鵝卵石路面請穿防滑好走的鞋。' },
+        { m:'walk', min:10, d:'沿 Beacon St 下坡步行約 10 分鐘。' },
+        { t:'16:10', dur:40, e:'🦆', n:'波士頓公園 & 公共花園', en:'Boston Common & Public Garden', q:'Boston Public Garden', ll:[42.3541,-71.0703],
+          h:['波士頓公園（1634）是全美最古老的城市公園；相鄰的公共花園（1837）是全美第一座公共植物園。',
+             '必看「讓路給小鴨」（Make Way for Ducklings）銅像；11 月天鵝船已停駛，但秋葉與黃昏湖景很美。'],
+          tip:'沿聯邦大道林蔭道（Commonwealth Ave Mall）往西走，兩側是 19 世紀褐石豪宅。' },
+        { m:'walk', min:15, d:'經 Commonwealth Ave Mall 步行約 15 分鐘；或 Green Line Arlington → Copley 1 站。' },
+        { t:'17:05', dur:75, e:'📚', n:'波士頓公共圖書館・貝茨廳', en:'Boston Public Library – Bates Hall', q:'Boston Public Library Central Library Copley Square', ll:[42.3493,-71.0782], addr:'700 Boylston St, Copley Square',
+          h:['<b>歷史背景：</b>建於 1848 年，是全美第一座由公家資助的大型免費市立圖書館，宗旨為「Free to All」。',
+             '<b>建築特色：</b>麥金樓（McKim Building）為新古典復興式風格。貝茨廳擁有高聳的半圓形桶形拱頂、古典綠色罩燈與深色木質長桌，宛如霍格華茲閱讀室。'],
+          tip:'週一至四通常開放至 20:00。別錯過麥金樓中庭迴廊，及對面的三一教堂。' },
+        { m:'subway', min:25, d:'Green Line Copley → Haymarket（約 10 分鐘），步行 7 分鐘進入北區。' },
+        { t:'18:50', dur:75, e:'🦑', n:'The Daily Catch', en:'The Daily Catch – North End', q:'The Daily Catch 323 Hanover St Boston', ll:[42.3646,-71.0544], addr:'323 Hanover St, Boston', food:'seafood',
+          tip:'招牌墨魚汁黑麵、炸花枝。座位很少常需排隊，建議早點到。' },
+    ]
+},
+{
+    day:2, date:'11/13', dow:'五', city:'b', cityName:'波士頓', emoji:'🎨', sunset:'16:23', hi:10, lo:2,
+    title:'北區獨立戰爭足跡 × 加德納 × 波士頓美術館',
+    sub:'上午先走北區，下午進兩大美術館，晚上回到昆西市場。',
+    note:'<b>順序調整：</b>保羅・利維爾故居 11 月約 10:00–16:15 開放、加德納 11:00 才開門，故改為「北區 → 加德納 → MFA → 昆西市場」，減少來回折返。',
+    events:[
+        { t:'10:00', dur:45, e:'🐎', n:'保羅・利維爾故居', en:'Paul Revere House', q:'Paul Revere House 19 North Square Boston', ll:[42.3637,-71.0537], addr:'19 North Square, Boston',
+          h:['建於 1680 年左右，是波士頓市中心現存最古老的建築。',
+             '利維爾是美國獨立戰爭的愛國英雄，以 1775 年「深夜騎馬報警」聞名。'],
+          tip:'步行 3 分鐘可到老北教堂（Old North Church），即「一盞燈陸路、兩盞燈海路」掛燈處。' },
+        { m:'walk', min:5, d:'步行約 5 分鐘至 Hanover St。' },
+        { t:'10:50', dur:20, e:'🥐', n:'Mike\'s Pastry', en:'Mike\'s Pastry', q:'Mike\'s Pastry 300 Hanover St Boston', ll:[42.3643,-71.0545], addr:'300 Hanover St, Boston', food:'dessert',
+          tip:'招牌西西里奶油卷（Cannoli），開心果、Ricotta 口味最受歡迎，外帶當下午點心。' },
+        { m:'walk', min:5, d:'步行約 3–5 分鐘至 Salem St。' },
+        { t:'11:20', dur:75, e:'🦪', n:'Neptune Oyster', en:'Neptune Oyster', q:'Neptune Oyster 63 Salem St Boston', ll:[42.3632,-71.0560], addr:'63 Salem St, Boston', food:'seafood',
+          tip:'不接受訂位，開門前到現場登記候位最穩。必點熱奶油龍蝦堡（Warm lobster roll）。' },
+        { m:'subway', min:35, d:'Haymarket 搭 Green Line E 線（往 Heath St）至 Museum of Fine Arts 站，約 25 分鐘，再步行 8 分鐘。' },
+        { t:'13:15', dur:105, e:'🌿', n:'加德納藝術博物館', en:'Isabella Stewart Gardner Museum', q:'Isabella Stewart Gardner Museum', ll:[42.3382,-71.0991], addr:'25 Evans Way, Boston',
+          h:['<b>歷史背景：</b>由 19 世紀藝術收藏家伊莎貝拉・史都華・加德納建於 1903 年。1990 年發生史上著名、至今未破的藝術品大劫案（失竊林布蘭、維梅爾等名畫）。',
+             '<b>建築特色：</b>靈感源自 15 世紀威尼斯宮殿，中央是四季常青的室內中庭花園；藏品擺設完全遵照遺囑保持原樣，失竊畫作的空畫框至今仍掛在原處。'],
+          tip:'需官網預購入場時段。名字叫 Isabella 的人、生日當天皆免費入場。' },
+        { m:'walk', min:10, d:'穿過 Fenway 綠帶步行約 8–10 分鐘。' },
+        { t:'15:10', dur:150, e:'🖼️', n:'波士頓美術館', en:'Museum of Fine Arts, Boston (MFA)', q:'Museum of Fine Arts Boston', ll:[42.3394,-71.0940], addr:'465 Huntington Ave, Boston',
+          h:['<b>歷史背景：</b>創立於 1870 年，是全美第四大博物館，藏品豐富度屬世界級。',
+             '<b>典藏特色：</b>印象派畫作極豐（莫內收藏量僅次於巴黎）、古埃及文物，以及全美頂尖的亞洲藝術（中國與日本書畫）。'],
+          tip:'美洲館展出利維爾親手打造的「自由之子銀碗」，與早上的故居呼應。週五可能延長開放，若當日 17:00 閉館，可改為先 MFA 後加德納。' },
+        { m:'subway', min:30, d:'Green Line E 線 Museum of Fine Arts → Haymarket，約 25 分鐘，步行 5 分鐘。' },
+        { t:'18:10', dur:90, e:'🍲', n:'昆西市場 & 法尼爾廳', en:'Quincy Market & Faneuil Hall', q:'Quincy Market Boston', ll:[42.3601,-71.0549], food:'casual',
+          h:['建於 1824–1826 年，以當時市長約書亞・昆西命名，為希臘復興式花崗岩建築。',
+             '如今是熱鬧的美食集散地，以龍蝦堡與蛤蜊濃湯（麵包碗）著稱；隔壁法尼爾廳（1742）有「自由的搖籃」之稱。'],
+          tip:'晚上燈飾很美，商店約 21:00 打烊。' },
+    ]
+},
+{
+    day:3, date:'11/14', dow:'六', city:'b', cityName:'波士頓 → 紐約', emoji:'🎓', sunset:'16:22', hi:10, lo:2,
+    title:'哈佛 × MIT 學術漫步 × 自由之路 → Amtrak 前往紐約',
+    sub:'早上退房並寄放行李，傍晚搭 Amtrak 從 South Station 前往紐約。',
+    note:'<b>行李提醒：</b>退房時請飯店代為保管行李，傍晚回飯店取件後再前往 South Station；或使用 Bounce / Radical Storage 等寄存服務。',
+    events:[
+        { m:'subway', min:20, d:'早上退房後，搭 Red Line 至 Harvard 站（市中心約 20 分鐘）。' },
+        { t:'09:00', dur:75, e:'🎓', n:'哈佛大學 & 哈佛廣場', en:'Harvard Yard & Harvard Square', q:'Harvard Yard, Cambridge, MA', ll:[42.3745,-71.1169],
+          h:['創立於 1636 年，是全美歷史最悠久的高等學府。',
+             '舊庭園（Harvard Yard）充滿常春藤盟校氛圍；約翰・哈佛雕像又稱「三謊言雕像」（人物非本人、哈佛非創辦人、年份有誤）。'],
+          tip:'順看懷德納圖書館外觀、Harvard Book Store 與 The Coop 書店。' },
+        { m:'walk', min:25, d:'沿 Massachusetts Ave 步行約 25 分鐘；或 Red Line Harvard → Central 1 站。' },
+        { t:'10:40', dur:30, e:'🥮', n:'Flour Bakery + Cafe', en:'Flour Bakery – Cambridge', q:'Flour Bakery 190 Massachusetts Ave Cambridge', ll:[42.3613,-71.0970], addr:'190 Massachusetts Ave, Cambridge', food:'cafe',
+          tip:'招牌焦糖黏黏卷（Sticky Bun）、香蕉麵包。' },
+        { m:'walk', min:8, d:'步行約 8 分鐘至 77 Massachusetts Ave。' },
+        { t:'11:20', dur:60, e:'🏛️', n:'麻省理工學院', en:'MIT – Great Dome & Stata Center', q:'MIT Great Dome, Killian Court, Cambridge', ll:[42.3597,-71.0920],
+          h:['創立於 1861 年，全球理工與科技界龍頭。',
+             '大圓頂（Great Dome）為新古典主義地標；史塔特科技中心（Stata Center，Frank Gehry 設計）展現後現代解構風格。'],
+          tip:'從 77 Mass Ave 正門進 Lobby 7，穿過「無限長廊」到 Killian Court 看大圓頂。' },
+        { m:'subway', min:15, d:'Red Line Kendall/MIT → Park Street（3 站，約 10 分鐘）。' },
+        { t:'12:40', dur:105, e:'🧱', n:'自由之路精華段', en:'Freedom Trail Highlights', q:'Boston Common Visitor Information Center', ll:[42.3555,-71.0640],
+          h:['地上紅磚線串起 16 處獨立戰爭史蹟，全長約 4 公里。',
+             '精華段：波士頓公園 → 麻州議會大廈 → 公園街教堂 → 格拉納里墓園（Samuel Adams、Paul Revere 長眠處）→ 國王禮拜堂 → 舊南會議所（波士頓茶黨集會地）→ 舊州議會大廈（波士頓大屠殺現場）→ 法尼爾廳。'],
+          tip:'跟著地上的紅磚線走即可，不需導覽也不會迷路。' },
+        { m:'walk', min:8, d:'由舊州議會大廈沿 State St 步行約 8 分鐘。' },
+        { t:'14:35', dur:75, e:'🦞', n:'Legal Sea Foods', en:'Legal Sea Foods – Long Wharf', q:'Legal Sea Foods Long Wharf 255 State St Boston', ll:[42.3599,-71.0505], addr:'255 State St, Boston', food:'seafood',
+          tip:'招牌新英格蘭蛤蜊濃湯（曾多次端上總統就職典禮）、龍蝦堡，面港口視野佳。' },
+        { m:'taxi', min:45, d:'回飯店取行李 → 計程車 / Uber 前往 South Station（市區約 10–15 分鐘）。' },
+        { t:'16:35', dur:25, e:'🚉', n:'Amtrak：South Station 發車', en:'Boston South Station', q:'Boston South Station', ll:[42.3519,-71.0552],
+          h:['Acela 高速列車約 3 小時 40 分；Northeast Regional 約 4 小時 15 分。'],
+          tip:'票價浮動，越早買越便宜。往紐約建議坐右側靠窗，可看康乃狄克海岸線。咖啡車廂可買晚餐。' },
+        { m:'train', min:225, d:'Amtrak 17:00 發車（示意，以實際車票為準）→ New York Penn Station。' },
+        { t:'20:45', dur:0, e:'🗽', n:'抵達紐約 Penn Station', en:'Moynihan Train Hall / Penn Station', q:'Moynihan Train Hall', ll:[40.7506,-73.9935],
+          h:['對面的 Moynihan Train Hall 由原郵政總局（Beaux-Arts 建築）改建，2021 年啟用。'],
+          tip:'依飯店位置搭地鐵（A/C/E、1/2/3）或計程車前往。' },
+    ]
+},
+{
+    day:4, date:'11/15', dow:'日', city:'n', cityName:'紐約', emoji:'🏛️', sunset:'16:36', hi:12, lo:5,
+    title:'大都會博物館 × 中央公園秋色 × 上東區鍍金時代',
+    sub:'11 月中旬是中央公園賞楓高峰。上午博物館、下午公園漫步、傍晚沿第五大道看豪宅。',
+    events:[
+        { t:'09:15', dur:45, e:'☕', n:'Via Quadronno', en:'Via Quadronno', q:'Via Quadronno 25 E 73rd St New York', ll:[40.7720,-73.9644], addr:'25 E 73rd St, New York', food:'cafe',
+          tip:'米蘭風格小咖啡館，卡布奇諾與帕尼尼很有名。' },
+        { m:'walk', min:10, d:'Madison Ave → 5th Ave 步行約 10 分鐘。' },
+        { t:'10:10', dur:240, e:'🏺', n:'大都會藝術博物館', en:'The Metropolitan Museum of Art', q:'The Metropolitan Museum of Art', ll:[40.7794,-73.9632], addr:'1000 5th Ave, New York',
+          h:['成立於 1870 年，世界四大博物館之一，館藏跨越 5000 年人類文明。',
+             '必看：完整的埃及丹鐸神廟（Temple of Dendur）、歐洲古典畫作（維梅爾、林布蘭）、亞洲藝術與蘇州園林「明軒」。'],
+          tip:'外州遊客需購票；館內咖啡廳可簡單午餐。' },
+        { m:'walk', min:15, d:'從博物館南側進入中央公園，步行約 15 分鐘。' },
+        { t:'14:25', dur:75, e:'⛲', n:'中央公園・畢士大噴泉', en:'Central Park – Bethesda Terrace', q:'Bethesda Terrace, Central Park', ll:[40.7740,-73.9708],
+          h:['1857 年由景觀設計大師奧姆斯特德與沃克斯設計，是世界都市公園的典範。',
+             '畢士大噴泉與「水之天使」雕像為公園心臟地帶；拱廊下的明頓瓷磚天花板非常精緻。'],
+          tip:'串連：克麗奧佩脫拉方尖碑 → 畢士大噴泉 → 弓橋（Bow Bridge）→ 文學步道（The Mall）。' },
+        { m:'walk', min:15, d:'出公園至 5th Ave & E 79th St，步行約 15 分鐘。' },
+        { t:'15:55', dur:120, e:'🏰', n:'上東區鍍金時代建築漫步', en:'Upper East Side Gilded Age Mansions', q:'Fifth Avenue & E 79th St, New York', ll:[40.7781,-73.9622],
+          h:['19 世紀末，美國工業鉅子沿第五大道興建仿歐洲宮殿的豪宅，形成「百萬富翁街」。',
+             '沿第五大道南行：烏克蘭學院（法國哥德式）→ 杜克公館（1 E 78th）→ 佩恩・惠特尼公館（972 Fifth Ave）→ 弗里克收藏館（1 E 70th）。'],
+          tip:'最後轉入麥迪遜大道，一路精品名店，散步到 63 街吃晚餐。' },
+        { m:'walk', min:15, d:'沿 Madison Ave 南行約 15 分鐘。' },
+        { t:'18:30', dur:105, e:'🍷', n:'Café Boulud', en:'Café Boulud', q:'Café Boulud 100 E 63rd St New York', ll:[40.7650,-73.9663], addr:'100 E 63rd St, New York', food:'dinner',
+          tip:'名廚 Daniel Boulud 旗下法式餐廳，請提前訂位，服裝建議 smart casual。' },
+        { m:'subway', min:20, d:'回程：Lexington Av/63 St（F/Q）或 Lexington Av/59 St（4/5/6、N/R/W）。' },
+    ]
+},
+{
+    day:5, date:'11/16', dow:'一', city:'n', cityName:'紐約', emoji:'🌿', sunset:'16:35', hi:12, lo:5,
+    title:'Hudson Yards × 高線公園 × Chelsea Market × 惠特尼',
+    sub:'由北往南走：Vessel → 高線公園空中步道 → Chelsea Market 午餐 → 惠特尼 → 肉品包裝區晚餐。',
+    note:'<b>日期調整：</b>原 PDF 將此日排在 11/17（週二），但<b>惠特尼週二休館</b>、摩根圖書館<b>週一休館</b>，因此 11/16 與 11/17 對調，景點不變。',
+    events:[
+        { m:'subway', min:20, d:'搭 7 號線至終點 34 St–Hudson Yards 站。' },
+        { t:'09:30', dur:60, e:'🍯', n:'Hudson Yards & Vessel', en:'Hudson Yards – Vessel', q:'Vessel, Hudson Yards, New York', ll:[40.7538,-74.0022],
+          h:['曼哈頓最新的大型都市更新區，建於鐵路調車場之上。',
+             'Vessel 蜂巢狀塔樓由英國建築師 Thomas Heatherwick 設計，由交錯樓梯構成，為當代幾何建築代表。'],
+          tip:'Vessel 登頂需官網預約時段；旁邊 Edge 觀景台有玻璃地板（可選）。' },
+        { m:'walk', min:5, d:'由 W 30th St 入口登上高線公園。' },
+        { t:'10:35', dur:75, e:'🌱', n:'高線公園', en:'The High Line', q:'The High Line, 30th St entrance, New York', ll:[40.7525,-74.0040],
+          h:['由 1930 年代廢棄的高架鐵路貨運線改建而成的空中綠色步道，全長約 2.3 公里。',
+             '穿梭於切爾西區新舊建築與藝廊之間，沿途可見 Frank Gehry IAC 大樓、Zaha Hadid 公寓。'],
+          tip:'在 W 16th St 出口下樓即到 Chelsea Market。' },
+        { m:'walk', min:3, d:'W 16th St 出口下樓，步行 2 分鐘。' },
+        { t:'11:55', dur:75, e:'🌮', n:'Chelsea Market・Los Tacos No.1', en:'Chelsea Market – Los Tacos No.1', q:'Los Tacos No. 1 Chelsea Market', ll:[40.7424,-74.0061], addr:'75 9th Ave, New York', food:'casual',
+          h:['原為 Nabisco 餅乾工廠（奧利奧誕生地），保留工業風紅磚與鋼鐵結構，現為高人氣美食市場。'],
+          tip:'Los Tacos No.1 推薦 Adobada（醃烤豬）塔可，排隊快速，站著吃。' },
+        { m:'walk', min:8, d:'步行約 8 分鐘至 Gansevoort St。' },
+        { t:'13:20', dur:210, e:'🎨', n:'惠特尼美國藝術博物館', en:'Whitney Museum of American Art', q:'Whitney Museum of American Art', ll:[40.7396,-74.0089], addr:'99 Gansevoort St, New York',
+          h:['1930 年由雕塑家 Gertrude Vanderbilt Whitney 創立，專注 20–21 世紀美國藝術。',
+             '2015 年遷至現址，Renzo Piano 設計，層層戶外露台可眺望哈德遜河與高線公園。'],
+          tip:'看 Edward Hopper 收藏；日落時分到頂層露台看河景。之後可逛肉品包裝區精品店。' },
+        { m:'walk', min:3, d:'步行約 3 分鐘。' },
+        { t:'18:30', dur:105, e:'🥖', n:'Pastis', en:'Pastis – Meatpacking District', q:'Pastis 52 Gansevoort St New York', ll:[40.7399,-74.0068], addr:'52 Gansevoort St, New York', food:'dinner',
+          tip:'經典巴黎小酒館氛圍，推薦 Steak Frites、洋蔥湯。建議訂位。' },
+        { m:'subway', min:15, d:'回程：14 St / 8 Av 站（A/C/E、L 線）。' },
+    ]
+},
+{
+    day:6, date:'11/17', dow:'二', city:'n', cityName:'紐約', emoji:'🌇', sunset:'16:34', hi:12, lo:5,
+    title:'MoMA × 摩根圖書館 × 洛克斐勒觀景台夕陽 × 韓國城',
+    sub:'中城文化日：近現代藝術、鍍金時代私人圖書館，傍晚在 Top of the Rock 看日落轉夜景。',
+    note:'<b>日期調整：</b>此日原為 11/16（週一），因摩根圖書館週一休館而對調。Top of the Rock 建議預約 16:00–16:15 時段。',
+    events:[
+        { m:'subway', min:15, d:'E/M 線至 5 Av/53 St 站。' },
+        { t:'10:30', dur:150, e:'🌌', n:'現代藝術博物館', en:'The Museum of Modern Art (MoMA)', q:'The Museum of Modern Art, 11 W 53rd St', ll:[40.7614,-73.9776], addr:'11 W 53rd St, New York',
+          h:['成立於 1929 年，全球近現代藝術聖殿。',
+             '典藏梵谷《星夜》、達利《記憶的永恆》、畢卡索《亞維農的少女》、莫內《睡蓮》。'],
+          tip:'《星夜》在 5 樓，開館即先上 5 樓避開人潮；別錯過一樓雕塑花園。' },
+        { m:'walk', min:20, d:'沿 Madison Ave 南行約 20 分鐘；或 6 號線 51 St → 33 St。' },
+        { t:'13:20', dur:105, e:'📜', n:'摩根圖書館暨博物館', en:'The Morgan Library & Museum', q:'The Morgan Library & Museum, 225 Madison Ave', ll:[40.7492,-73.9814], addr:'225 Madison Ave, New York',
+          h:['原為金融巨擘 J.P. Morgan 的私人圖書館，建於 1906 年（McKim, Mead & White 設計）。',
+             '三層高聳的雕花木製書架與文藝復興風格壁畫，展現鍍金時代的奢華與學養；藏有古騰堡聖經。'],
+          tip:'館內玻璃中庭咖啡廳可稍作休息、簡單午餐。' },
+        { m:'subway', min:20, d:'步行至 34 St–Herald Sq，搭 B/D/F/M 至 47–50 Sts–Rockefeller Ctr。' },
+        { t:'15:30', dur:120, e:'🌆', n:'洛克斐勒中心 & Top of the Rock', en:'Rockefeller Center – Top of the Rock', q:'Top of the Rock Observation Deck', ll:[40.7593,-73.9794], addr:'30 Rockefeller Plaza, New York',
+          h:['洛克斐勒中心於 1930 年代大蕭條時期興建，是 Art Deco 建築群的代表作。',
+             'Top of the Rock 可同時看見帝國大廈與中央公園全景，日落轉夜景最迷人。'],
+          tip:'先看對面新哥德式的聖派翠克大教堂；11 月中聖誕樹會抵達廣場（點燈約 12 月初）。' },
+        { m:'subway', min:15, d:'B/D/F/M 47–50 Sts → 34 St–Herald Sq，步行 3 分鐘至韓國城。' },
+        { t:'18:00', dur:90, e:'🍲', n:'Cho Dang Gol', en:'Cho Dang Gol – Koreatown', q:'Cho Dang Gol 55 W 35th St New York', ll:[40.7500,-73.9857], addr:'55 W 35th St, New York', food:'dinner',
+          tip:'以每日自製豆腐聞名，推薦豆腐鍋、石鍋拌飯。' },
+        { m:'walk', min:8, d:'步行約 8 分鐘至布萊恩公園。' },
+        { t:'19:40', dur:40, e:'🍰', n:'Lady M 千層蛋糕', en:'Lady M Cake Boutique – Bryant Park', q:'Lady M Cake Boutique Bryant Park New York', ll:[40.7526,-73.9840], food:'dessert',
+          tip:'招牌原味千層、伯爵茶千層。旁邊布萊恩公園冬季村有免費溜冰場與聖誕市集。營業時間請先確認。' },
+    ]
+},
+{
+    day:7, date:'11/18', dow:'三', city:'n', cityName:'紐約', emoji:'🌉', sunset:'16:33', hi:12, lo:5,
+    title:'布魯克林大橋 × DUMBO × 華爾街 × SoHo 選品',
+    sub:'貝果早餐後步行跨越布魯克林大橋，搭渡輪回下曼哈頓，下午華爾街歷史區，傍晚 SoHo / Nolita。',
+    events:[
+        { t:'08:30', dur:60, e:'🥯', n:'Sadelle\'s', en:'Sadelle\'s – SoHo', q:'Sadelle\'s 463 W Broadway New York', ll:[40.7247,-74.0021], addr:'463 W Broadway, New York', food:'cafe',
+          tip:'招牌煙燻鮭魚貝果塔（Tower），多人分食最划算。建議訂位。' },
+        { m:'subway', min:15, d:'R/W 線 Prince St → City Hall（約 10 分鐘）；或步行約 20 分鐘。' },
+        { t:'09:45', dur:45, e:'🌉', n:'布魯克林大橋漫步', en:'Brooklyn Bridge Walk', q:'Brooklyn Bridge Pedestrian Walkway Manhattan entrance', ll:[40.7121,-74.0045],
+          h:['建於 1883 年，是世界上第一座鋼索懸索橋，也是紐約標誌性的國家歷史地標。',
+             '哥德式雙拱門花崗岩橋塔極具歷史厚重感；建造期間總工程師父子相繼病倒，由媳婦 Emily Roebling 傳話指揮完工。'],
+          tip:'從市政廳旁入口上橋往布魯克林走，回頭就是下曼哈頓天際線。注意別走進自行車道。' },
+        { m:'walk', min:10, d:'下橋後步行約 10 分鐘至 DUMBO。' },
+        { t:'10:40', dur:90, e:'📷', n:'DUMBO 經典攝影點', en:'DUMBO – Washington St & Water St', q:'Washington St & Water St, Brooklyn, NY', ll:[40.7033,-73.9895],
+          h:['DUMBO 意為「Down Under the Manhattan Bridge Overpass」，昔日工業倉庫區，如今為頂級文創藝術區。',
+             '在 Washington St 與 Water St 交界，可拍下曼哈頓大橋框住帝國大廈的經典視角。'],
+          tip:'順遊布魯克林大橋公園、Jane\'s Carousel 旋轉木馬與 Pebble Beach。' },
+        { m:'ferry', min:20, d:'NYC Ferry 東河線 DUMBO/Fulton Ferry → Wall St/Pier 11（約 10 分鐘，票價約 $4–5）；或地鐵 2/3 線 Clark St → Wall St。' },
+        { t:'12:30', dur:90, e:'🐂', n:'華爾街歷史區', en:'Wall Street Historic District', q:'Federal Hall National Memorial', ll:[40.7073,-74.0103],
+          h:['美國金融資本主義的心臟，包含紐約證券交易所（NYSE）與象徵牛市的銅牛雕像（Charging Bull）。',
+             '聯邦廳（Federal Hall）是 1789 年華盛頓宣誓就任首任總統之處。'],
+          tip:'午餐可在附近 Stone Street 石板街解決。銅牛在 Bowling Green，常需排隊拍照。' },
+        { m:'walk', min:8, d:'沿 Broadway 南行約 8 分鐘至 Bowling Green。' },
+        { t:'14:10', dur:75, e:'🪶', n:'國家美洲原住民博物館', en:'National Museum of the American Indian', q:'National Museum of the American Indian, 1 Bowling Green', ll:[40.7041,-74.0137], addr:'1 Bowling Green, New York',
+          h:['位於亞歷山大・漢密爾頓美國海關大樓內（1907），為 Beaux-Arts 美術學院派經典。',
+             '展出美洲原住民豐富文化遺產；圓形大廳穹頂壁畫描繪航海與貿易主題。'],
+          tip:'屬史密森尼學會，免費入場。' },
+        { m:'subway', min:15, d:'R/W 線 Whitehall St → Prince St（約 15 分鐘）。' },
+        { t:'15:40', dur:180, e:'🛍️', n:'SoHo / Nolita 選品店', en:'SoHo & Nolita Shopping', q:'Prince St & Greene St, New York', ll:[40.7249,-73.9990],
+          h:['SoHo 擁有全世界最集中的鑄鐵立面建築（Cast-Iron Historic District），19 世紀為工廠倉庫，1970 年代成為藝術家 loft。',
+             'Prince St、Spring St、Greene St 為品牌旗艦店；Nolita 的 Elizabeth St、Mott St 多獨立選品店。'],
+          tip:'McNally Jackson 獨立書店適合挑紀念品。' },
+        { m:'walk', min:10, d:'步行約 10 分鐘。' },
+        { t:'19:00', dur:90, e:'🧆', n:'Shuka', en:'Shuka – Mediterranean', q:'Shuka 38 MacDougal St New York', ll:[40.7285,-74.0010], addr:'38 MacDougal St, New York', food:'dinner',
+          tip:'推薦各式抹醬拼盤（Mezze）、Shakshuka。建議訂位。' },
+    ]
+},
+{
+    day:8, date:'11/19', dow:'四', city:'n', cityName:'紐約', emoji:'🎭', sunset:'16:33', hi:12, lo:5,
+    title:'自然歷史博物館 × 西村漫步 × 百老匯之夜',
+    sub:'上午上西區看恐龍與藍鯨，下午西村巷弄散步，早晚餐後前往劇院區。',
+    events:[
+        { m:'subway', min:20, d:'B/C 線至 81 St–Museum of Natural History 站（出站即博物館）。' },
+        { t:'10:00', dur:210, e:'🦖', n:'美國自然歷史博物館', en:'American Museum of Natural History', q:'American Museum of Natural History', ll:[40.7813,-73.9740], addr:'200 Central Park West, New York',
+          h:['建於 1869 年，全球最大自然歷史博物館之一，也是電影《博物館驚魂夜》背景地。',
+             '四樓恐龍化石展廳、海洋生物廳 29 公尺藍鯨模型；2023 年開幕的 Gilder Center（Studio Gang 設計）峽谷般的中庭極具張力。'],
+          tip:'館內美食廣場可午餐。' },
+        { m:'subway', min:25, d:'1 號線 79 St → Christopher St–Stonewall（約 20 分鐘）。' },
+        { t:'13:55', dur:120, e:'🏘️', n:'西村漫步', en:'West Village Walk', q:'Grove Court, Grove St, New York', ll:[40.7330,-74.0050],
+          h:['保留曼哈頓少有、不依棋盤格規劃的蜿蜒小巷與褐色砂石（Brownstone）排屋，充滿波希米亞文藝氣息。',
+             '路線：石牆酒吧（美國同志權益運動起點）→ Grove Court → Commerce St / Cherry Lane 劇院 → 75½ Bedford St（紐約最窄的房子）→ 90 Bedford St（《六人行》公寓外觀）→ Perry St。'],
+          tip:'66 Perry St 是《慾望城市》凱莉家門口，屬私人住宅，請勿坐台階。' },
+        { m:'walk', min:5, d:'步行約 5 分鐘。' },
+        { t:'16:00', dur:30, e:'🍌', n:'Magnolia Bakery 創始店', en:'Magnolia Bakery – Bleecker St', q:'Magnolia Bakery 401 Bleecker St New York', ll:[40.7359,-74.0050], addr:'401 Bleecker St, New York', food:'dessert',
+          tip:'招牌香蕉布丁（Banana Pudding）、杯子蛋糕。' },
+        { m:'walk', min:12, d:'步行約 12 分鐘至格林威治村。' },
+        { t:'17:00', dur:75, e:'🍔', n:'Minetta Tavern', en:'Minetta Tavern', q:'Minetta Tavern 113 MacDougal St New York', ll:[40.7301,-74.0006], addr:'113 MacDougal St, New York', food:'dinner',
+          tip:'招牌 Black Label Burger。極難訂位，請在 Resy 開放日搶訂；早場最容易配合 19:00 開演。' },
+        { m:'subway', min:20, d:'A/C/E 線 W 4 St–Wash Sq → 42 St–Port Authority（約 12 分鐘），步行至劇院。' },
+        { t:'18:40', dur:170, e:'🎭', n:'百老匯音樂劇', en:'Broadway Show – Theater District', q:'Times Square, New York', ll:[40.7580,-73.9855],
+          h:['百老匯劇院區集中於 W 41st–54th St，約 41 座專業劇院。',
+             '經典長青劇碼如《獅子王》《歌劇魅影》《芝加哥》《漢密爾頓》《魔法壞女巫》。'],
+          tip:'官方票務或 TodayTix 預購；當日折扣票可到時代廣場 TKTS 紅色階梯售票亭。週四晚場通常 19:00 開演。' },
+    ]
+},
+{
+    day:9, date:'11/20', dow:'五', city:'n', cityName:'紐約', emoji:'🚉', sunset:'16:32', hi:12, lo:5,
+    title:'紐約公共圖書館 × 中央車站 × Summit 夕陽 × 最後採購',
+    sub:'中城 42 街 Beaux-Arts 建築巡禮，下午第五大道採購，夕陽時段登上 Summit。',
+    events:[
+        { m:'subway', min:15, d:'B/D/F/M 線 42 St–Bryant Park 或 7 號線 5 Av 站。' },
+        { t:'10:00', dur:75, e:'🦁', n:'紐約公共圖書館', en:'NYPL – Stephen A. Schwarzman Building', q:'New York Public Library Stephen A. Schwarzman Building', ll:[40.7532,-73.9822], addr:'476 5th Ave, New York',
+          h:['主樓施瓦茨曼大樓建於 1911 年，Beaux-Arts 風格；入口兩座石獅名為「耐心」與「堅毅」。',
+             '三樓玫瑰主閱覽室（Rose Main Reading Room）長近一個街區，雲彩天頂壁畫雄偉壯觀。'],
+          tip:'有免費導覽，時段見官網。後方即布萊恩公園冬季村。' },
+        { m:'walk', min:7, d:'沿 E 42nd St 東行約 7 分鐘。' },
+        { t:'11:25', dur:35, e:'✨', n:'中央車站', en:'Grand Central Terminal', q:'Grand Central Terminal', ll:[40.7527,-73.9772],
+          h:['1913 年啟用的 Beaux-Arts 建築傑作，主大廳天頂繪有星空黃道十二宮（星座方向是反的）。',
+             '大廳中央的四面蛋白石時鐘是紐約最經典的約會地點，為紐約最具情感溫度的門戶。'],
+          tip:'到下層蠔吧門口的「耳語廊」，兩人站對角輕聲說話可清楚聽見。' },
+        { m:'walk', min:1, d:'中央車站下層。' },
+        { t:'12:00', dur:75, e:'🦪', n:'Grand Central Oyster Bar', en:'Grand Central Oyster Bar', q:'Grand Central Oyster Bar', ll:[40.7524,-73.9770], food:'seafood',
+          tip:'坐吧檯點生蠔拼盤與燉牡蠣（Oyster Pan Roast）；瓜斯塔維諾磚拱天花板本身就是看點。' },
+        { m:'walk', min:10, d:'步行約 10 分鐘至第五大道。' },
+        { t:'13:30', dur:120, e:'🛍️', n:'第五大道最後巡禮採購', en:'Fifth Avenue Shopping', q:'Fifth Avenue & E 50th St, New York', ll:[40.7590,-73.9776],
+          tip:'第五大道 42–59 街為旗艦店區；伴手禮可考慮 Trader Joe\'s、Macy\'s Herald Square。' },
+        { m:'walk', min:12, d:'步行返回 42 街，約 10–12 分鐘。' },
+        { t:'15:45', dur:105, e:'🪞', n:'Summit One Vanderbilt', en:'Summit One Vanderbilt', q:'SUMMIT One Vanderbilt', ll:[40.7530,-73.9787], addr:'45 E 42nd St, New York',
+          h:['2021 年開幕，融合鏡面反射、光影互動與多維度空間感的沉浸式觀景台。',
+             '可近距離直視帝國大廈與克萊斯勒大樓，眺望曼哈頓天際線。'],
+          tip:'鏡面地板請避免穿裙子；建議預約日落前約 45 分鐘入場。' },
+        { m:'subway', min:15, d:'Grand Central 搭 6 號線至 23 St（約 8 分鐘），步行 5 分鐘。' },
+        { t:'18:30', dur:120, e:'🍽️', n:'Gramercy Tavern', en:'Gramercy Tavern', q:'Gramercy Tavern 42 E 20th St New York', ll:[40.7385,-73.9885], addr:'42 E 20th St, New York', food:'dinner',
+          tip:'正式用餐區需訂位；前方 Tavern 酒館區可 walk-in，氣氛更輕鬆。' },
+    ]
+},
+{
+    day:10, date:'11/21', dow:'六', city:'n', cityName:'紐約 → 臺灣', emoji:'✈️', sunset:'16:31', hi:12, lo:5,
+    title:'最後的早餐與採買 → 前往機場返臺',
+    sub:'早上輕鬆漫步與整理行李。國際線建議起飛前 3 小時抵達機場。',
+    events:[
+        { t:'08:00', dur:60, e:'🥯', n:'在地精緻早餐', en:'Russ & Daughters Cafe（參考）', q:'Russ & Daughters Cafe 127 Orchard St New York', ll:[40.7192,-73.9898], food:'cafe',
+          tip:'可選飯店附近咖啡館；想要紐約經典味，Russ & Daughters（1914 年至今）的煙燻魚貝果、或 Ess-a-Bagel 都是好選擇。' },
+        { m:'subway', min:25, d:'F 線 Delancey St → 34 St–Herald Sq。' },
+        { t:'09:30', dur:90, e:'🎁', n:'市區輕漫步與最後採買', en:'Last-minute Shopping', q:'Macy\'s Herald Square', ll:[40.7508,-73.9890],
+          tip:'回飯店整理行李、退房。液體、食品類伴手禮放託運行李。' },
+        { m:'taxi', min:60, d:'回飯店取行李後前往機場。黃計程車曼哈頓 ⇄ JFK 固定費率約 $70，另加過路費、附加費與小費。' },
+        { t:'依航班', dur:0, e:'✈️', n:'JFK 甘迺迪國際機場', en:'John F. Kennedy International Airport', q:'John F. Kennedy International Airport', ll:[40.6413,-73.7781],
+          h:['<b>計程車：</b>約 50–80 分鐘，固定費率約 $70 起。',
+             '<b>大眾運輸：</b>地鐵 E 線或 LIRR（Penn Station / Grand Central Madison）至 Jamaica 站，轉 AirTrain 至航廈，約 60–75 分鐘。',
+             '<b>若從 EWR 紐華克出發：</b>Penn Station 搭 NJ Transit 至 Newark Airport 站，轉 AirTrain，約 40 分鐘。'],
+          tip:'建議起飛前 3 小時抵達。航廈請以機票為準。' },
+    ]
+},
+];
+
+// 計算每段出發時間、每日統計
+DAYS.forEach(d => {
+    d.stops = d.events.filter(e => !e.m);
+    d.moveMin = d.events.filter(e => e.m).reduce((s, e) => s + (e.min || 0), 0);
+    d.playMin = d.stops.reduce((s, e) => s + (e.dur || 0), 0);
+});
+
+// ==========================================
+// 3. Navigation
+// ==========================================
+const VIEWS = [
+    { id:'dashboard', icon:'📊', label:'儀表盤' },
+    { id:'itinerary', icon:'📅', label:'每日行程' },
+    { id:'food',      icon:'🍔', label:'美食地圖' },
+    { id:'tools',     icon:'🧮', label:'實用工具' },
+    { id:'info',      icon:'ℹ️', label:'準備與資訊' },
+];
+let currentDay = 1;
+
+function initNavigation() {
+    document.getElementById('nav-desktop').innerHTML = VIEWS.map(v =>
+        `<a href="#${v.id === 'itinerary' ? 'day-' + currentDay : v.id}" data-target="${v.id}" class="nav-btn px-3 py-2 rounded-md text-sm font-medium transition-colors">${v.icon} ${v.label}</a>`).join('');
+    document.getElementById('nav-mobile').innerHTML = VIEWS.map(v =>
+        `<a href="#${v.id === 'itinerary' ? 'day-' + currentDay : v.id}" data-target="${v.id}" class="nav-btn flex flex-col items-center py-2 text-[11px] font-medium"><span class="text-lg leading-none mb-0.5">${v.icon}</span>${v.label}</a>`).join('');
+}
+
+function route() {
+    const h = location.hash.slice(1) || 'dashboard';
+    const m = h.match(/^day-(\d+)$/);
+    if (m) { currentDay = Math.min(Math.max(+m[1], 1), DAYS.length); switchView('itinerary'); renderDay(currentDay); }
+    else switchView(VIEWS.some(v => v.id === h) ? h : 'dashboard');
+}
+
+function switchView(id) {
+    document.querySelectorAll('.view').forEach(s => s.classList.toggle('hidden', s.id !== 'view-' + id));
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        const on = b.dataset.target === id;
+        b.classList.toggle('text-blue-600', on);
+        b.classList.toggle('bg-blue-50', on);
+        b.classList.toggle('text-slate-600', !on);
+        if (b.dataset.target === 'itinerary') b.setAttribute('href', '#day-' + currentDay);
+    });
+    if (id === 'dashboard') setTimeout(initMapAll, 0);
+    window.scrollTo(0, 0);
+}
+
+// ==========================================
+// 4. Dashboard
+// ==========================================
+let mapAll, mapAllLayers = { b: [], n: [] }, chartInstance;
+
+function renderDashboard() {
+    document.getElementById('weather-container').innerHTML = DAYS.map(d => `
+        <a href="#day-${d.day}" class="shrink-0 w-[92px] text-center p-3 rounded-xl border ${d.city === 'b' ? 'bg-rose-50 border-rose-100' : 'bg-blue-50/60 border-blue-100'} hover:shadow-md transition">
+            <div class="text-xs font-bold text-slate-500">${d.date}（${d.dow}）</div>
+            <div class="text-2xl my-1">${d.day === 3 ? '🚆' : '⛅'}</div>
+            <div class="text-sm font-bold text-slate-800">${d.hi}° / ${d.lo}°</div>
+            <div class="text-[11px] text-slate-500 mt-1">🌇 ${d.sunset}</div>
+            <div class="text-[11px] font-bold ${d.city === 'b' ? 'text-rose-600' : 'text-blue-600'}">${CITY[d.city].name}</div>
+        </a>`).join('');
+
+    const hl = [[1,'📸','橡子街紅磚巷'],[3,'🎓','哈佛 & MIT'],[4,'🍂','中央公園秋色'],[6,'🌇','Top of the Rock 夕陽'],[7,'🌉','布魯克林大橋'],[8,'🎭','百老匯之夜']];
+    document.getElementById('highlights').innerHTML = hl.map(([d, e, t]) => `
+        <a href="#day-${d}" class="text-left p-3 rounded-xl bg-slate-50 hover:bg-blue-50 transition border border-slate-100 group">
+            <div class="text-sm text-slate-500 mb-1">Day ${d}</div>
+            <div class="font-bold text-slate-800 group-hover:text-blue-700">${e} ${t}</div>
+        </a>`).join('');
+
+    document.getElementById('overview-list').innerHTML = DAYS.map(d => `
+        <a href="#day-${d.day}" class="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 transition">
+            <div class="shrink-0 w-14 text-center rounded-lg py-1.5 text-white bg-gradient-to-br ${CITY[d.city].grad}">
+                <div class="text-[10px] font-bold opacity-80">DAY ${d.day}</div><div class="text-sm font-black">${d.date}</div>
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs font-bold ${d.city === 'b' ? 'text-rose-600' : 'text-blue-600'}">${d.cityName}・週${d.dow}</div>
+                <div class="font-bold text-slate-800">${d.emoji} ${d.title}</div>
+                <div class="text-sm text-slate-500 mt-0.5 line-clamp-2">🍴 ${d.stops.filter(s => s.food).map(s => s.n).join('、')}</div>
+            </div>
+            <span class="ml-auto text-slate-300 self-center">›</span>
+        </a>`).join('');
+
+    chartInstance = new Chart(document.getElementById('intensityChart'), {
+        type: 'bar',
+        data: {
+            labels: DAYS.map(d => 'D' + d.day),
+            datasets: [
+                { label:'交通（時）', data: DAYS.map(d => +(d.moveMin / 60).toFixed(1)), backgroundColor:'#94a3b8', borderRadius:4 },
+                { label:'遊玩 / 用餐（時）', data: DAYS.map(d => +(d.playMin / 60).toFixed(1)), backgroundColor: DAYS.map(d => CITY[d.city].hex), borderRadius:4 },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, border: { display: false } } },
+            plugins: { legend: { position:'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+            onClick: (e, els) => { if (els.length) location.hash = 'day-' + (els[0].index + 1); }
+        }
+    });
+}
+
+function dotIcon(color, label) {
+    return L.divIcon({
+        className: 'num-icon', iconSize: [26, 26], iconAnchor: [13, 13],
+        html: `<div style="background:${color}" class="w-[26px] h-[26px] rounded-full border-[3px] border-white shadow-md text-white text-[11px] font-black flex items-center justify-center">${label}</div>`
+    });
+}
+
+function initMapAll() {
+    if (mapAll) { mapAll.invalidateSize(); return; }
+    mapAll = L.map('map-all', { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(mapAll);
+    DAYS.forEach(d => d.stops.filter(s => s.ll).forEach(s => {
+        const c = s.ll[1] > -72 ? 'b' : 'n';
+        const mk = L.marker(s.ll, { icon: dotIcon(CITY[c].hex, d.day) }).addTo(mapAll);
+        mk.bindPopup(`<div class="text-center p-1"><div class="text-3xl mb-1">${s.e}</div>
+            <div class="font-bold text-slate-800">${s.n}</div><div class="text-xs text-slate-500 mb-2">Day ${d.day}・${d.date}</div>
+            <a href="#day-${d.day}" class="block px-3 py-1.5 bg-blue-600 !text-white rounded-lg text-sm font-bold">查看 Day ${d.day}</a></div>`);
+        mapAllLayers[c].push(mk);
+    }));
+    fitCity('all');
+    document.querySelectorAll('#map-filter button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#map-filter button').forEach(x => {
+            const on = x === b;
+            x.className = 'px-2.5 py-1 rounded-full ' + (on ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600');
+        });
+        fitCity(b.dataset.c);
+    }));
+}
+
+function fitCity(c) {
+    const pts = (c === 'all' ? [...mapAllLayers.b, ...mapAllLayers.n] : mapAllLayers[c]).map(m => m.getLatLng());
+    mapAll.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
+}
+
+// ==========================================
+// 5. Daily Itinerary（一天一頁）
+// ==========================================
+let mapDay, mapDayLayer;
+
+function renderDay(n) {
+    const d = DAYS[n - 1], c = CITY[d.city];
+    document.getElementById('day-tabs').innerHTML = DAYS.map(x => `
+        <a href="#day-${x.day}" class="shrink-0 px-3 py-1.5 rounded-lg text-center border transition ${x.day === n
+            ? 'text-white border-transparent shadow-sm bg-gradient-to-br ' + CITY[x.city].grad
+            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'}">
+            <div class="text-[10px] font-bold opacity-80">D${x.day}・${CITY[x.city].name}</div><div class="text-sm font-black">${x.date}</div>
+        </a>`).join('');
+    const tab = document.querySelector('#day-tabs a:nth-child(' + n + ')');
+    if (tab) tab.scrollIntoView({ block: 'nearest', inline: 'center' });
+
+    let html = `
+    <div class="animate-fade-in">
+        <div class="bg-gradient-to-br ${c.grad} rounded-2xl p-6 text-white shadow-lg mb-5 relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-white/20 font-black px-3 py-1 rounded-lg text-sm backdrop-blur-sm">Day ${d.day}</span>
+                    <span class="text-sm font-semibold opacity-90">${d.date}（${d.dow}）・${d.cityName}</span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-extrabold leading-snug mb-2">${d.title}</h3>
+                <p class="text-white/85 text-sm">${d.sub}</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm">
+                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">景點 / 餐廳</div><div class="font-bold">${d.stops.length} 站</div></div>
+                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">交通時間</div><div class="font-bold">約 ${durTxt(d.moveMin)}</div></div>
+                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">氣溫（平均）</div><div class="font-bold">${d.lo}–${d.hi}°C</div></div>
+                    <div class="bg-white/15 rounded-xl px-3 py-2"><div class="text-[11px] opacity-75">日落</div><div class="font-bold">🌇 ${d.sunset}</div></div>
+                </div>
+            </div>
+            <div class="absolute -right-4 -bottom-8 text-[120px] opacity-20 select-none">${d.emoji}</div>
+        </div>
+        ${d.note ? `<div class="bg-amber-50 text-amber-900 p-4 rounded-xl border border-amber-200 text-sm leading-relaxed mb-5">⚠️ ${d.note}</div>` : ''}
+        <div class="bg-white rounded-2xl shadow-sm p-1 border border-slate-200 mb-8"><div id="map-day" class="h-[260px] sm:h-[320px] rounded-xl z-10"></div></div>
+        <div class="timeline-container relative pl-12 space-y-5">`;
+
+    let idx = 0;
+    d.events.forEach((ev, i) => {
+        if (ev.m) {
+            const mv = MOVE[ev.m];
+            const prev = d.events.slice(0, i).reverse().find(x => x.q);
+            const next = d.events.slice(i + 1).find(x => x.q);
+            html += `
+            <div class="relative">
+                <div class="absolute -left-[2.15rem] top-1 w-7 h-7 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center text-sm z-10">${mv.icon}</div>
+                <div class="text-sm text-slate-600 bg-slate-100/80 border border-dashed border-slate-300 rounded-xl px-3.5 py-2.5 leading-relaxed">
+                    <span class="font-bold text-slate-800">${mv.label}${ev.min ? `・約 ${durTxt(ev.min)}` : ''}：</span>${ev.d}
+                    ${prev && next ? `<a href="${DIR(prev.q, next.q, mv.g)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 ml-1 font-bold text-blue-600 hover:underline whitespace-nowrap">🧭 Google 路線</a>` : ''}
+                </div>
+            </div>`;
+            return;
+        }
+        idx++;
+        const start = toMin(ev.t);
+        const depart = start !== null && ev.dur ? fmt(start + ev.dur) : null;
+        html += `
+        <div class="relative group">
+            <div style="background:${ev.food ? '#16a34a' : c.hex}" class="absolute -left-[2.3rem] top-4 w-[1.6rem] h-[1.6rem] rounded-full border-4 border-slate-50 shadow-md z-10 text-white text-[10px] font-black flex items-center justify-center transition-transform group-hover:scale-110">${idx}</div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border ${ev.food ? 'border-green-200' : 'border-slate-100'} hover:shadow-md transition-shadow">
+                <div class="mb-3">
+                    <div class="flex items-center gap-2.5 mb-1 flex-wrap">
+                        <span class="text-2xl">${ev.e}</span>
+                        <h4 class="text-lg font-bold text-slate-800">${ev.n}</h4>
+                        ${ev.food ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">${FOOD_CAT[ev.food]}</span>` : ''}
+                    </div>
+                    <div class="text-sm text-slate-500 font-medium flex items-start gap-1.5 pl-1">
+                        <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>${ev.en}${ev.addr ? `<span class="text-slate-400">・${ev.addr}</span>` : ''}</span>
+                    </div>
+                </div>
+                <div class="inline-flex flex-wrap items-center gap-x-4 gap-y-2 text-sm ${c.soft} border px-3 py-2 rounded-lg w-full">
+                    <div class="flex items-center gap-1.5 font-bold"><span>⏰</span>${ev.t}</div>
+                    ${ev.dur ? `<div class="hidden sm:block w-1 h-1 rounded-full bg-slate-300"></div><div class="flex items-center gap-1.5 font-medium text-slate-600"><span class="opacity-70">⏳</span>停留 ${durTxt(ev.dur)}</div>` : ''}
+                    ${depart ? `<div class="hidden sm:block w-1 h-1 rounded-full bg-slate-300"></div><div class="flex items-center gap-1.5 font-medium text-slate-600"><span class="opacity-70">🚀</span>${depart} 出發</div>` : ''}
+                </div>
+                <div class="detail-block space-y-2.5 mt-3 text-sm">
+                    ${ev.h ? `<div class="bg-slate-50 text-slate-700 p-3 rounded-xl border border-slate-200 leading-relaxed">
+                        <div class="font-bold text-slate-800 mb-1">🏛️ 歷史與特色</div>
+                        <ul class="list-disc pl-5 space-y-1">${ev.h.map(x => `<li>${x}</li>`).join('')}</ul></div>` : ''}
+                    ${ev.tip ? `<div class="bg-amber-50 text-amber-800 p-3 rounded-xl border border-amber-200 leading-relaxed"><span class="font-bold text-amber-900">💡 提醒/筆記：</span>${ev.tip}</div>` : ''}
+                </div>
+                <a href="${G(ev.q)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-3 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-300 text-slate-700 rounded-lg transition font-bold text-sm shadow-sm">📍 Google Maps</a>
+            </div>
+        </div>`;
+    });
+    html += `</div>`;
+
+    const prev = n > 1 ? DAYS[n - 2] : null, next = n < DAYS.length ? DAYS[n] : null;
+    html += `<div class="grid grid-cols-2 gap-3 mt-10">
+        ${prev ? `<a href="#day-${prev.day}" class="p-4 rounded-xl bg-white border border-slate-200 hover:shadow-md transition"><div class="text-xs text-slate-400">← 上一天</div><div class="font-bold text-slate-800 text-sm">Day ${prev.day}・${prev.date}</div></a>` : '<div></div>'}
+        ${next ? `<a href="#day-${next.day}" class="p-4 rounded-xl bg-white border border-slate-200 hover:shadow-md transition text-right"><div class="text-xs text-slate-400">下一天 →</div><div class="font-bold text-slate-800 text-sm">Day ${next.day}・${next.date}</div></a>` : '<div></div>'}
+    </div></div>`;
+
+    document.getElementById('day-panel').innerHTML = html;
+    drawDayMap(d);
+}
+
+function drawDayMap(d) {
+    if (mapDay) mapDay.remove();
+    mapDay = L.map('map-day', { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(mapDay);
+    const pts = [];
+    d.stops.forEach((s, i) => {
+        if (!s.ll) return;
+        pts.push(s.ll);
+        L.marker(s.ll, { icon: dotIcon(s.food ? '#16a34a' : CITY[d.city].hex, i + 1) }).addTo(mapDay)
+            .bindPopup(`<div class="font-bold">${s.e} ${s.n}</div><div class="text-xs text-slate-500">${s.t}</div>
+                <a href="${G(s.q)}" target="_blank" rel="noopener" class="text-xs font-bold">📍 Google Maps</a>`);
+    });
+    L.polyline(pts, { color: CITY[d.city].hex, weight: 3, opacity: .6, dashArray: '6 8' }).addTo(mapDay);
+    const fit = () => { mapDay.invalidateSize(); mapDay.fitBounds(L.latLngBounds(pts), { padding: [30, 30] }); };
+    fit();
+    setTimeout(fit, 150);
+}
+
+function initCompact() {
+    const btn = document.getElementById('compact-btn');
+    const apply = on => {
+        document.body.classList.toggle('compact-mode', on);
+        btn.textContent = on ? '📝 精簡模式' : '📖 詳細模式';
+    };
+    let on = store.get('tour-compact', false);
+    apply(on);
+    btn.addEventListener('click', () => { on = !on; apply(on); store.set('tour-compact', on); });
+}
+
+// ==========================================
+// 6. Food
+// ==========================================
+function renderFood(filter = 'all') {
+    const cats = Object.entries(FOOD_CAT);
+    document.getElementById('food-filters').innerHTML = [['all', '全部'], ...cats].map(([k, v]) => `
+        <button data-f="${k}" class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm ${k === filter ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}">${v}</button>`).join('');
+    document.querySelectorAll('#food-filters button').forEach(b => b.addEventListener('click', () => renderFood(b.dataset.f)));
+
+    const items = DAYS.flatMap(d => d.stops.filter(s => s.food && (filter === 'all' || s.food === filter)).map(s => ({ ...s, d })));
+    document.getElementById('food-grid').innerHTML = items.map(s => `
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col hover:shadow-md transition">
+            <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2.5"><span class="text-3xl">${s.e}</span>
+                    <div><h4 class="font-bold text-slate-800 leading-tight">${s.n}</h4><div class="text-xs text-slate-500">${s.en}</div></div></div>
+                <span class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full ${s.d.city === 'b' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600'}">${CITY[s.d.city].name}</span>
+            </div>
+            <div class="text-xs text-slate-400 mb-2">${FOOD_CAT[s.food]}${s.addr ? '・' + s.addr : ''}</div>
+            <p class="text-sm text-slate-600 leading-relaxed flex-1">${s.tip || ''}</p>
+            <div class="flex gap-2 mt-4">
+                <a href="${G(s.q)}" target="_blank" rel="noopener" class="flex-1 text-center px-3 py-2 bg-slate-50 border border-slate-200 hover:border-blue-300 rounded-lg text-sm font-bold text-slate-700">📍 地圖</a>
+                <a href="#day-${s.d.day}" class="flex-1 text-center px-3 py-2 bg-blue-50 border border-blue-100 hover:bg-blue-100 rounded-lg text-sm font-bold text-blue-700">Day ${s.d.day}・${s.d.date} ${s.t}</a>
+            </div>
+        </div>`).join('');
+}
+
+// ==========================================
+// 7. Tools
+// ==========================================
+function initTools() {
+    const rateEl = document.getElementById('custom-rate'), usd = document.getElementById('usd-input'), twd = document.getElementById('twd-input');
+    rateEl.value = store.get('tour-rate', 31.5);
+    const rate = () => parseFloat(rateEl.value) || 0;
+    usd.addEventListener('input', () => { twd.value = usd.value ? Math.round(usd.value * rate()) : ''; });
+    twd.addEventListener('input', () => { usd.value = twd.value && rate() ? (twd.value / rate()).toFixed(2) : ''; });
+    rateEl.addEventListener('input', () => { store.set('tour-rate', rate()); if (usd.value) twd.value = Math.round(usd.value * rate()); renderExpenses(); calcTip(); });
+
+    // 小費
+    let pct = 20;
+    const pctBox = document.getElementById('tip-pcts');
+    const drawPct = () => pctBox.innerHTML = [15, 18, 20, 22].map(p => `<button data-p="${p}" class="py-2 rounded-lg text-sm font-bold border ${p === pct ? 'bg-amber-500 text-white border-amber-500' : 'bg-white border-slate-200 text-slate-600'}">${p}%</button>`).join('');
+    drawPct();
+    pctBox.addEventListener('click', e => { const p = e.target.dataset.p; if (p) { pct = +p; drawPct(); calcTip(); } });
+    ['tip-bill', 'tip-tax', 'tip-people'].forEach(id => document.getElementById(id).addEventListener('input', () => calcTip()));
+    window.calcTip = () => {
+        const bill = parseFloat(document.getElementById('tip-bill').value) || 0;
+        const tax = bill * (parseFloat(document.getElementById('tip-tax').value) || 0) / 100;
+        const tip = bill * pct / 100;
+        const total = bill + tax + tip;
+        const ppl = Math.max(1, parseInt(document.getElementById('tip-people').value) || 1);
+        document.getElementById('tip-result').innerHTML = `
+            <div class="flex justify-between"><span class="text-slate-300">稅金</span><span>$${tax.toFixed(2)}</span></div>
+            <div class="flex justify-between"><span class="text-slate-300">小費（${pct}%，以稅前計）</span><span>$${tip.toFixed(2)}</span></div>
+            <div class="flex justify-between text-lg font-bold pt-1 border-t border-slate-600 mt-1"><span>總計</span><span>$${total.toFixed(2)}</span></div>
+            <div class="flex justify-between text-green-400"><span>每人（${ppl} 人）</span><span>$${(total / ppl).toFixed(2)}・NT$${Math.round(total / ppl * rate()).toLocaleString()}</span></div>`;
+    };
+    calcTip();
+
+    // 記帳
+    document.getElementById('expense-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const list = store.get('tour-expenses', []);
+        list.push({ id: Date.now(), name: document.getElementById('expense-name').value, amt: parseFloat(document.getElementById('expense-amount').value) });
+        store.set('tour-expenses', list);
+        e.target.reset();
+        renderExpenses();
+    });
+    document.getElementById('expense-list').addEventListener('click', e => {
+        const id = e.target.dataset.del;
+        if (!id) return;
+        store.set('tour-expenses', store.get('tour-expenses', []).filter(x => x.id !== +id));
+        renderExpenses();
+    });
+    renderExpenses();
+}
+
+function renderExpenses() {
+    const list = store.get('tour-expenses', []);
+    const rate = parseFloat(document.getElementById('custom-rate').value) || 0;
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+    document.getElementById('expense-list').innerHTML = list.length ? list.slice().reverse().map(x => `
+        <li class="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-slate-100 text-sm">
+            <span class="font-medium text-slate-700">${esc(x.name)}</span>
+            <span class="flex items-center gap-3"><span class="font-bold">$${x.amt.toFixed(2)}</span>
+            <button data-del="${x.id}" class="text-slate-300 hover:text-red-500 font-bold">✕</button></span>
+        </li>`).join('') : '<li class="text-center text-slate-400 py-4 text-sm">尚無紀錄，開始新增吧！</li>';
+    const total = list.reduce((s, x) => s + x.amt, 0);
+    document.getElementById('total-usd').textContent = '$' + total.toFixed(2);
+    document.getElementById('total-twd').textContent = 'NT$' + Math.round(total * rate).toLocaleString();
+}
+
+// ==========================================
+// 8. Info
+// ==========================================
+const BOOKINGS = [
+    ['amtrak', '🚆 Amtrak 波士頓 → 紐約', '11/14 傍晚・Acela 或 Northeast Regional'],
+    ['gardner', '🌿 加德納博物館入場時段', '11/13 13:15'],
+    ['boulud', '🍷 Café Boulud 晚餐', '11/15 18:30'],
+    ['vessel', '🍯 Vessel 登頂時段', '11/16 09:30'],
+    ['pastis', '🥖 Pastis 晚餐', '11/16 18:30'],
+    ['totr', '🌆 Top of the Rock 夕陽時段', '11/17 16:00–16:15'],
+    ['sadelles', '🥯 Sadelle\'s 早餐', '11/18 08:30'],
+    ['shuka', '🧆 Shuka 晚餐', '11/18 19:00'],
+    ['minetta', '🍔 Minetta Tavern（極難訂）', '11/19 17:00'],
+    ['broadway', '🎭 百老匯音樂劇門票', '11/19 19:00'],
+    ['summit', '🪞 Summit One Vanderbilt 夕陽時段', '11/20 15:45'],
+    ['gramercy', '🍽️ Gramercy Tavern 晚餐', '11/20 18:30'],
+    ['esta', '🛂 ESTA 申請', '出發前至少 72 小時'],
+];
+const TRANSPORT = [
+    ['🛬 羅根機場 → 波士頓市區', ['Silver Line SL1：從機場出發免費，直達 South Station 轉 Red Line。', 'Blue Line：搭免費接駁巴士 22/33/55 至 Airport 站，往 Government Center 約 10 分鐘。', 'Uber / 計程車：約 20–30 分鐘，經海底隧道。']],
+    ['🚇 波士頓 MBTA 地鐵', ['閘門可直接感應信用卡 / 手機支付，單程約 $2.40。', 'Red Line：哈佛、MIT、Park St、South Station。', 'Green Line：Copley（圖書館）、Museum of Fine Arts（E 線）、Haymarket（北區）。']],
+    ['🚆 Amtrak 波士頓 → 紐約', ['South Station 或 Back Bay 上車，抵達 New York Penn Station（Moynihan Train Hall）。', 'Acela 約 3 小時 40 分；Northeast Regional 約 4 小時 15 分，較便宜。', '票價浮動，早買便宜；大件行李放車廂兩端行李架。']],
+    ['🚇 紐約 MTA 地鐵 & OMNY', ['閘門直接感應信用卡 / 手機（OMNY），單程約 $3。', '同一張卡 7 天內搭滿 12 次後自動免費（票價上限）。', '分 Local（每站停）與 Express（跳站），上車前確認車廂標示與月台方向（Uptown / Downtown）。', '24 小時營運，深夜班距較長。']],
+    ['⛴️ NYC Ferry', ['DUMBO / Fulton Ferry ⇄ Wall St / Pier 11，約 10 分鐘。', '用 NYC Ferry App 或碼頭售票機購票，票價約 $4–5。']],
+    ['✈️ 紐約 → 機場（返程）', ['JFK 計程車：曼哈頓固定費率約 $70，另加過路費、附加費與小費，約 50–80 分鐘。', 'JFK 大眾運輸：地鐵 E 線或 LIRR 至 Jamaica，轉 AirTrain，約 60–75 分鐘。', 'EWR：Penn Station 搭 NJ Transit 至 Newark Airport 站轉 AirTrain，約 40 分鐘。', '國際線建議起飛前 3 小時抵達。']],
+];
+const LUGGAGE = [
+    ['🛂 證件與財務', ['護照（效期 6 個月以上）', 'ESTA 核准截圖 / 列印', '信用卡（支援感應支付）2 張以上', '少量美金現金（小費用）', '旅遊平安險 / 不便險']],
+    ['🧥 衣物（約 2–13°C）', ['保暖防風外套 / 羽絨衣', '洋蔥式穿搭：發熱衣＋毛衣', '圍巾、手套、毛帽', '防水好走的鞋（每天步行 1–2 萬步）', '一套 smart casual 服裝（晚餐 / 百老匯）']],
+    ['🔌 電子用品', ['手機與充電線', '行動電源', 'eSIM / 漫遊開通', '耳機（地鐵、火車）']],
+    ['💊 其他', ['乳液、護唇膏（天氣乾冷）', '摺疊傘', '常備藥品', '環保購物袋']],
+];
+const TRIP_FIELDS = [
+    ['flight-out', '✈️ 去程航班', '例：BR32 11/12 抵達 BOS', false],
+    ['flight-back', '✈️ 回程航班', '例：BR31 11/21 JFK 起飛', false],
+    ['hotel-b', '🏨 波士頓住宿（11/12–11/14）', '飯店名稱或地址', true],
+    ['hotel-n', '🏨 紐約住宿（11/14–11/21）', '飯店名稱或地址', true],
+];
+
+function accordion(containerId, items, renderBody) {
+    document.getElementById(containerId).innerHTML = items.map(([title, list], i) => `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <button data-acc="${containerId}-${i}" class="w-full flex justify-between items-center px-5 py-4 font-bold text-left hover:bg-slate-50">${title}<span class="text-slate-400 transition-transform">▾</span></button>
+            <div id="${containerId}-${i}" class="hidden px-5 pb-4">${renderBody(list, i)}</div>
+        </div>`).join('');
+    document.getElementById(containerId).addEventListener('click', e => {
+        const b = e.target.closest('[data-acc]');
+        if (!b) return;
+        const body = document.getElementById(b.dataset.acc);
+        body.classList.toggle('hidden');
+        b.querySelector('span').style.transform = body.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    });
+}
+
+function checkRow(key, label, sub, checked) {
+    return `<label class="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 cursor-pointer">
+        <input type="checkbox" class="custom-checkbox hidden" data-k="${key}" ${checked ? 'checked' : ''}>
+        <div class="w-5 h-5 mt-0.5 shrink-0 rounded border-2 border-slate-300 flex items-center justify-center transition">
+            <svg class="w-3 h-3 text-white hidden" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+        <span class="text-sm text-slate-700">${label}${sub ? `<span class="block text-xs text-slate-400">${sub}</span>` : ''}</span>
+    </label>`;
+}
+
+function bindChecks(rootId, storeKey, onChange) {
+    document.getElementById(rootId).addEventListener('change', e => {
+        if (!e.target.dataset.k) return;
+        const s = store.get(storeKey, {});
+        s[e.target.dataset.k] = e.target.checked;
+        store.set(storeKey, s);
+        onChange && onChange();
+    });
+}
+
+function renderInfo() {
+    const bk = store.get('tour-bookings', {});
+    document.getElementById('booking-list').innerHTML = BOOKINGS.map(([k, t, d]) => checkRow(k, t, d, bk[k])).join('');
+    const count = () => {
+        const s = store.get('tour-bookings', {});
+        document.getElementById('booking-count').textContent = `已完成 ${BOOKINGS.filter(([k]) => s[k]).length} / ${BOOKINGS.length}`;
+    };
+    count();
+    bindChecks('booking-list', 'tour-bookings', count);
+
+    const lg = store.get('tour-luggage', {});
+    accordion('luggage-acc', LUGGAGE, (list, i) => list.map((x, j) => checkRow(`l${i}-${j}`, x, '', lg[`l${i}-${j}`])).join(''));
+    bindChecks('luggage-acc', 'tour-luggage');
+
+    accordion('transport-acc', TRANSPORT, list => `<ul class="text-sm text-slate-700 space-y-1.5">${list.map(x => `<li class="flex gap-2"><span class="text-slate-400">▪</span><span>${x}</span></li>`).join('')}</ul>`);
+
+    const tf = store.get('tour-trip', {});
+    document.getElementById('trip-fields').innerHTML = TRIP_FIELDS.map(([k, label, ph, isPlace]) => `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex justify-between items-center mb-1.5">
+                <span class="text-sm font-bold text-slate-700">${label}</span>
+                ${isPlace ? `<a data-nav="${k}" target="_blank" rel="noopener" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md font-bold ${tf[k] ? '' : 'hidden'}">📍 導航</a>` : ''}
+            </div>
+            <input data-field="${k}" value="${(tf[k] || '').replace(/"/g, '&quot;')}" placeholder="${ph}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        </div>`).join('');
+    const syncNav = () => document.querySelectorAll('[data-nav]').forEach(a => {
+        const v = store.get('tour-trip', {})[a.dataset.nav];
+        a.classList.toggle('hidden', !v);
+        if (v) a.href = G(v);
+    });
+    syncNav();
+    document.getElementById('trip-fields').addEventListener('input', e => {
+        const k = e.target.dataset.field;
+        if (!k) return;
+        const s = store.get('tour-trip', {});
+        s[k] = e.target.value;
+        store.set('tour-trip', s);
+        syncNav();
+    });
+}
+
+// ==========================================
+// 9. Init
+// ==========================================
+initNavigation();
+renderDashboard();
+renderFood();
+initTools();
+renderInfo();
+initCompact();
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
